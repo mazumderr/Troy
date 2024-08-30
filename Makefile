@@ -3,7 +3,6 @@ a.exe: main.o
 
 main.o: main.cpp
 	g++ -c main.cpp
-
-#would be cool if this was magically `rm` on linux/mac
+	
 clean:
-	del main.o
+	rm main.o
