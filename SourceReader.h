@@ -5,22 +5,19 @@
 #ifndef SOURCEREADER_SOURCEREADER_H
 #define SOURCEREADER_SOURCEREADER_H
 
-#include <iostream>
-#include <iomanip>
-#include <fstream>
 #include <sstream>
-#include <string>
-#include <utility>
-#include <vector>
 #include "StringParser.h"
-
 
 
 class SourceReader {
     public:
+        SourceReader();
         SourceReader(const std::string &filename); //constructor
         // opening file and converting it to input stream
         bool processSource(char &c);
+        void open(const std::string &filename);
+
+        void unget(const std::string &str);
 
     private:
         std::string sourceFile;
@@ -33,6 +30,7 @@ class SourceReader {
         StringParser stringParser;
         int begin_comment = 1;
 
+        std::stringstream ungetBuffer = std::stringstream(std::string());
 };
 
 

@@ -4,9 +4,36 @@
 
 #include "SourceReader.h"
 // constructor
+SourceReader::SourceReader() {
+}
+
 SourceReader::SourceReader(const std::string &filename) {
+    open(filename);
+}
+
+void SourceReader::open(const std::string &filename) {
     sourceFile = filename;
     inputStream.open(sourceFile);
+}
+
+/**
+ * @brief "unget" a string
+ *  the next few calls to processSource will just return the string
+ * 
+ * @pre do not use this in the middle of a block-comment... there's no reason you'd do that anyways
+ *      but it would definitely screw up the begin_comment or line_count variables
+ * @param str string to artificially put into the source file
+ */
+void SourceReader::unget(const std::string &str) {
+    //clumsily grab anything in the ungetBuffer that isn't consumed yet
+    std::string curBuff = "";
+    char c;
+    while (ungetBuffer.get(c)) {
+        curBuff += c;
+    }
+    //stick on the requested string
+    curBuff += str;
+    ungetBuffer = std::stringstream(curBuff);
 }
 
 bool SourceReader::processSource(char &c) {
@@ -17,8 +44,14 @@ bool SourceReader::processSource(char &c) {
         std::cerr << "File not found!" << std::endl;
         return false;
     }
+
+    //if there's any ungetBuffer to work with, start there
+    if (ungetBuffer.get(c)) {
+        return true;
+    }
     // Read file character by character
     inputStream.get(c);
+
     if (inputStream.eof()) {
         if (mode == modes::block) {
             std::cerr << "ERROR: Program contains C-style, unterminated comment on line " << begin_comment;
