@@ -20,8 +20,9 @@ void SourceReader::open(const std::string &filename) {
  * @brief "unget" a string
  *  the next few calls to processSource will just return the string
  * 
- * @pre do not use this in the middle of a block-comment... there's no reason you'd do that anyways
- *      but it would definitely screw up the begin_comment or line_count variables
+ * @pre don't you dare unget a string that contains a \n.
+ *      That would throw off the pos and line_count variables really badly.
+ *      Only villains do that.
  * @param str string to artificially put into the source file
  */
 void SourceReader::unget(const std::string &str) {
@@ -33,6 +34,8 @@ void SourceReader::unget(const std::string &str) {
     }
     //stick on the requested string
     curBuff += str;
+    //track that we just went back x amount
+    pos -= str.length();
     ungetBuffer = std::stringstream(curBuff);
 }
 
@@ -45,6 +48,7 @@ bool SourceReader::processSource(char &c) {
         return false;
     }
 
+    ++pos;
     //if there's any ungetBuffer to work with, start there
     if (ungetBuffer.get(c)) {
         return true;
@@ -102,6 +106,7 @@ bool SourceReader::processSource(char &c) {
     }
     if (c == '\n') {                               // newline
         line_count++;
+        pos = 0;
         if (mode == modes::single) {
             mode = modes::normal;
             return true;

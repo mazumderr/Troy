@@ -18,6 +18,8 @@ class SourceReader {
         void open(const std::string &filename);
 
         void unget(const std::string &str);
+        unsigned int getPos() { return pos; };
+        unsigned int getLine() { return line_count; };
 
     private:
         std::string sourceFile;
@@ -30,6 +32,7 @@ class SourceReader {
         StringParser stringParser;
         int begin_comment = 1;
 
+        unsigned int pos = 0;
         std::stringstream ungetBuffer = std::stringstream(std::string());
 };
 
