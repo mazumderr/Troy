@@ -1,3 +1,13 @@
+/**
+ * @file Scanner.cpp
+ * @author Bo Thompson (extralife.xyz)
+ * @brief there's nothing brief about this. we're reading tokens.
+ * @version 0.1
+ * @date 2024-09-02
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #include "Scanner.hpp"
 #include "..\StringParser.h"
 #include <fstream>
@@ -17,7 +27,9 @@ string getReadableTokenType(TokenType t) {
     case TokenType::SEMICOLON: return "SEMICOLON";
     case TokenType::LEFT_BRACE: return "LEFT_BRACE";
     case TokenType::RIGHT_BRACE: return "RIGHT_BRACE";
-    case TokenType::OPERATOR: return "OPERATOR";
+    case TokenType::PLUS: return "PLUS";
+    case TokenType::MINUS: return "MINUS";
+    case TokenType::DIVIDE: return "DIVIDE";
     case TokenType::ASSIGNMENT: return "ASSIGNMENT";
     case TokenType::INTEGER: return "INTEGER";
     case TokenType::BOOLEAN_EQUAL: return "BOOLEAN_EQUAL";
@@ -25,6 +37,15 @@ string getReadableTokenType(TokenType t) {
     case TokenType::DOUBLE_QUOTE: return "DOUBLE_QUOTE";
     case TokenType::STRING: return "STRING";
     case TokenType::COMMA: return "COMMA";
+    case TokenType::MODULO: return "MODULO";
+    case TokenType::ASTERISK: return "ASTERISK";
+    case TokenType::LESS_THAN: return "LESS_THAN";
+    case TokenType::GREATER_THAN: return "GREATER_THAN";
+    case TokenType::LESS_THAN_OR_EQUAL: return "LESS_THAN_OR_EQUAL";
+    case TokenType::GREATER_THAN_OR_EQUAL: return "GREATER_THAN_OR_EQUAL";
+    case TokenType::BOOLEAN_AND: return "BOOLEAN_AND";
+    case TokenType::LEFT_BRACKET: return "LEFT_BRACKET";
+    case TokenType::RIGHT_BRACKET: return "RIGHT_BRACKET";
   }
 }
 
@@ -216,6 +237,87 @@ list<Token> Scanner::getTokens() {
             ));
           } break;
 
+          case '%' : {
+            l.emplace_back(Token (
+              string{c},
+              TokenType::MODULO,
+              sr.getLine(),
+              sr.getPos()
+            ));
+          } break;
+
+          case '&' : {
+            sr.processSource(c);
+
+            if (c != '&') {
+              error("Stray &");
+            }
+
+            l.emplace_back(Token (
+              "&&",
+              TokenType::BOOLEAN_AND,
+              sr.getLine(),
+              sr.getPos()
+            ));
+
+          } break;
+
+          case '<' : {
+            sr.processSource(c);
+
+            if (c != '=') {
+              sr.unget(string{c});
+
+              l.emplace_back(Token (
+                "<",
+                TokenType::LESS_THAN,
+                sr.getLine(),
+                sr.getPos()
+              ));
+            }
+            else {
+              l.emplace_back(Token (
+                "<=",
+                TokenType::LESS_THAN_OR_EQUAL,
+                sr.getLine(),
+                sr.getPos()
+              ));
+            }
+          } break;
+
+          case '>' : {
+            sr.processSource(c);
+            if (c != '=') {
+              sr.unget(string{c});
+
+              l.emplace_back(Token (
+                ">",
+                TokenType::GREATER_THAN,
+                sr.getLine(),
+                sr.getPos()
+              ));
+            }
+
+            else {
+
+              l.emplace_back(Token (
+                ">=",
+                TokenType::GREATER_THAN_OR_EQUAL,
+                sr.getLine(),
+                sr.getPos()
+              ));
+            }
+          } break;
+
+          case '*' : {
+            l.emplace_back(Token (
+              string{c},
+              TokenType::ASTERISK,
+              sr.getLine(),
+              sr.getPos()
+            ));
+          } break;
+
           case '{' : {
             l.emplace_back(Token (
               string{c},
@@ -247,6 +349,33 @@ list<Token> Scanner::getTokens() {
             l.emplace_back(Token (
               string{c},
               TokenType::COMMA,
+              sr.getLine(),
+              sr.getPos()
+            ));
+          } break;
+
+          case '[' : {
+            l.emplace_back(Token (
+              string{c},
+              TokenType::LEFT_BRACKET,
+              sr.getLine(),
+              sr.getPos()
+            ));
+          } break;
+
+          case ']' : {
+            l.emplace_back(Token (
+              string{c},
+              TokenType::RIGHT_BRACKET,
+              sr.getLine(),
+              sr.getPos()
+            ));
+          } break;
+
+          case '/' : {
+            l.emplace_back(Token (
+              string{c},
+              TokenType::DIVIDE,
               sr.getLine(),
               sr.getPos()
             ));
@@ -303,7 +432,7 @@ list<Token> Scanner::getTokens() {
             sr.unget(string{c});
             l.emplace_back(Token(
               spelling,
-              TokenType::OPERATOR,
+              (spelling == "+") ? TokenType::PLUS : TokenType::MINUS,
               sr.getLine(),
               sr.getPos()
             ));
@@ -342,6 +471,14 @@ list<Token> Scanner::getTokens() {
             ));
 
             spelling = "";
+            state = ss::IDLE;
+          } break;
+
+          case_azAZ_ {
+            cout << "Syntax error on line " << sr.getLine() << ": invalid integer" << endl;
+            l.clear();
+            return l;
+            
           } break;
 
           default: {
