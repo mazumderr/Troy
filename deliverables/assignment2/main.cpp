@@ -22,7 +22,6 @@ int main(int argc, char** argv){
 
   for (auto t = tokenList.begin(); t != tokenList.end(); ++t) {
     cout << "Token type: " << getReadableTokenType(t->getType()) << endl <<
-      "Location:   " << t->getLine() << ":" << t->getPos() << endl <<
       "Token:      " << t->getSpelling() << endl << endl;
   }
 
