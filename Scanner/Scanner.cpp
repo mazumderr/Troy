@@ -15,6 +15,12 @@
 #include <vector>
 #include <algorithm>
 
+/**
+ * @brief All this does is convert my enums into strings for printing nice and pretty
+ * 
+ * @param t type to get a good string for
+ * @return string that looks good
+ */
 string getReadableTokenType(TokenType t) {
   //regex to build these:
   //^(\s+)(\w+),*
@@ -49,22 +55,46 @@ string getReadableTokenType(TokenType t) {
   }
 }
 
+/**
+ * @brief Construct a new Scanner. You'd better call open() next.
+ * 
+ */
 Scanner::Scanner() {
 }
 
+/**
+ * @brief Construct a new Scanner and also call open()
+ * 
+ * @param fname source file to open
+ */
 Scanner::Scanner(const string &fname) {
   open(fname);
 }
 
+/**
+ * @brief Open a source file for tokenization. Leaves the 404 problem up to underlying object SourceReader
+ * 
+ * @param fname name of the source file
+ */
 void Scanner::open(const string &fname) {
   sr.open(fname);
 }
 
+/**
+ * @brief print an error message and end the program, and give a hint about where the failure was
+ * 
+ * @param msg message to print
+ */
 void Scanner::error(string msg) {
   cout << "Scanner: " << msg << " at " << sr.getLine() << ":" << sr.getPos() << endl;
   exit(-1);
 }
 
+/**
+ * @brief The meat of this operation. Returns a linked list full of tokens, can error out in a lot of ways. Hopefully complains about all of them.
+ * 
+ * @return list<Token> the tokens. empty if a syntax error was found.
+ */
 list<Token> Scanner::getTokens() {
   list<Token> l;
 
@@ -163,6 +193,7 @@ list<Token> Scanner::getTokens() {
     case_09 \
     case_azAZ_
 
+  //states for the state machine
   enum class ss {
     IDLE,
     INT,
@@ -174,12 +205,17 @@ list<Token> Scanner::getTokens() {
 
   ss state = ss::IDLE;
 
+  //the spelling of any multi-character variable token we find
   string spelling = "";
 
+  //string parser so that we don't have to think about finding the end of a string
   StringParser sp;
 
+  //iterate through characters in the source file
   char c;
   while (sr.processSource(c)) {
+    //switch on state, and inside is a lot of switching on what character we found
+    //begin spaghetti code
     switch (state) {
       case ss::IDLE: {
         switch (c) {
@@ -214,38 +250,20 @@ list<Token> Scanner::getTokens() {
 
           } break;
 
+          //integers
           case_09 {
             spelling += c;
             state = ss::INTEGER;
           } break;
 
-          case '(' : {
-            l.emplace_back(Token (
-              string{c},
-              TokenType::LEFT_PARENTHESIS,
-              sr.getLine(),
-              sr.getPos()
-            ));
+          //plus or minus, which is probably plus or minus but maybe an integer so go to the disambiguation state
+          case '+' :
+          case '-' : {
+            spelling += c;
+            state = ss::PLUSMINUS;
           } break;
 
-          case ')' : {
-            l.emplace_back(Token (
-              string{c},
-              TokenType::RIGHT_PARENTHESIS,
-              sr.getLine(),
-              sr.getPos()
-            ));
-          } break;
-
-          case '%' : {
-            l.emplace_back(Token (
-              string{c},
-              TokenType::MODULO,
-              sr.getLine(),
-              sr.getPos()
-            ));
-          } break;
-
+          //ampersands are never used in the boolean way it looks like? but he uses the term "boolean_and" instead of "logical_and"
           case '&' : {
             sr.processSource(c);
 
@@ -262,6 +280,7 @@ list<Token> Scanner::getTokens() {
 
           } break;
 
+          //< and > cases MIGHT have an equals afterwards, not really worth breaking out into a separate state
           case '<' : {
             sr.processSource(c);
 
@@ -307,6 +326,63 @@ list<Token> Scanner::getTokens() {
                 sr.getPos()
               ));
             }
+          } break;
+
+          //could be an ==, go to disambiguation state
+          case '=' : {
+            spelling += c;
+            state = ss::EQUAL;
+          } break;
+
+          //start of a string. log the type of quote, then feed the quote to our string processor and stop thinking until it says it's our turn again.
+          case '\'': {
+            l.emplace_back(Token (
+              string{c},
+              TokenType::SINGLE_QUOTE,
+              sr.getLine(),
+              sr.getPos()
+            ));
+            state = ss::STRING;
+            sp.parse(c);
+          } break;
+
+          case '\"': {
+            l.emplace_back(Token (
+              string{c},
+              TokenType::DOUBLE_QUOTE,
+              sr.getLine(),
+              sr.getPos()
+            ));
+            state = ss::STRING;
+            sp.parse(c);
+          } break;
+
+          //from here on out there's just a lot of single-character tokens
+          case '(' : {
+            l.emplace_back(Token (
+              string{c},
+              TokenType::LEFT_PARENTHESIS,
+              sr.getLine(),
+              sr.getPos()
+            ));
+          } break;
+
+          case ')' : {
+            l.emplace_back(Token (
+              string{c},
+              TokenType::RIGHT_PARENTHESIS,
+              sr.getLine(),
+              sr.getPos()
+            ));
+          } break;
+
+          case '%' : {
+            l.emplace_back(Token (
+              string{c},
+              TokenType::MODULO,
+              sr.getLine(),
+              sr.getPos()
+            ));
           } break;
 
           case '*' : {
@@ -381,45 +457,13 @@ list<Token> Scanner::getTokens() {
             ));
           } break;
 
-          case '+' :
-          case '-' : {
-            spelling += c;
-            state = ss::PLUSMINUS;
-          } break;
-
-          case '=' : {
-            spelling += c;
-            state = ss::EQUAL;
-          } break;
-
-          case '\'': {
-            l.emplace_back(Token (
-              string{c},
-              TokenType::SINGLE_QUOTE,
-              sr.getLine(),
-              sr.getPos()
-            ));
-            state = ss::STRING;
-            sp.parse(c);
-          } break;
-
-          case '\"': {
-            l.emplace_back(Token (
-              string{c},
-              TokenType::DOUBLE_QUOTE,
-              sr.getLine(),
-              sr.getPos()
-            ));
-            state = ss::STRING;
-            sp.parse(c);
-          } break;
-
           default: {
             //FIXME: should the idle state report errors on unexpected characters?
           }
         }
       } break;
 
+      //disambiguation between plus/minus and an integer that starts with plus/minus
       case ss::PLUSMINUS: {
         switch (c) {
 
@@ -442,6 +486,7 @@ list<Token> Scanner::getTokens() {
         }
       } break;
 
+      //grab the whole integer
       case ss::INTEGER: {
         switch (c) {
           case_09 {
@@ -497,6 +542,7 @@ list<Token> Scanner::getTokens() {
         }
       } break;
 
+      //disambiguation between = and ==
       case ss::EQUAL : {
         switch (c) {
           case '=': {
@@ -529,6 +575,7 @@ list<Token> Scanner::getTokens() {
         }
       } break;
 
+      //wait for String Parser to say that we've gotten to the end. Until then it's no thoughts, head empty.
       case ss::STRING: {
 
         while (sp.parse(c)) {
