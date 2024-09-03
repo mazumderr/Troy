@@ -4,9 +4,39 @@
 
 #include "SourceReader.h"
 // constructor
+SourceReader::SourceReader() {
+}
+
 SourceReader::SourceReader(const std::string &filename) {
+    open(filename);
+}
+
+void SourceReader::open(const std::string &filename) {
     sourceFile = filename;
     inputStream.open(sourceFile);
+}
+
+/**
+ * @brief "unget" a string
+ *  the next few calls to processSource will just return the string
+ * 
+ * @pre don't you dare unget a string that contains a \n.
+ *      That would throw off the pos and line_count variables really badly.
+ *      Only villains do that.
+ * @param str string to artificially put into the source file
+ */
+void SourceReader::unget(const std::string &str) {
+    //clumsily grab anything in the ungetBuffer that isn't consumed yet
+    std::string curBuff = "";
+    char c;
+    while (ungetBuffer.get(c)) {
+        curBuff += c;
+    }
+    //stick on the requested string
+    curBuff += str;
+    //track that we just went back x amount
+    pos -= str.length();
+    ungetBuffer = std::stringstream(curBuff);
 }
 
 bool SourceReader::processSource(char &c) {
@@ -17,8 +47,15 @@ bool SourceReader::processSource(char &c) {
         std::cerr << "File not found!" << std::endl;
         return false;
     }
+
+    ++pos;
+    //if there's any ungetBuffer to work with, start there
+    if (ungetBuffer.get(c)) {
+        return true;
+    }
     // Read file character by character
     inputStream.get(c);
+
     if (inputStream.eof()) {
         if (mode == modes::block) {
             std::cerr << "ERROR: Program contains C-style, unterminated comment on line " << begin_comment;
@@ -69,6 +106,7 @@ bool SourceReader::processSource(char &c) {
     }
     if (c == '\n') {                               // newline
         line_count++;
+        pos = 0;
         if (mode == modes::single) {
             mode = modes::normal;
             return true;
