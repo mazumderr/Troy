@@ -169,11 +169,17 @@ Token:      ;
 Token type: IDENTIFIER
 Token:      i
 
-Token type: PLUS
-Token:      +
+Token type: ASSIGNMENT
+Token:      =
+
+Token type: IDENTIFIER
+Token:      i
 
 Token type: PLUS
 Token:      +
+
+Token type: INTEGER
+Token:      1
 
 Token type: RIGHT_PARENTHESIS
 Token:      )
@@ -199,7 +205,7 @@ Token:      i
 Token type: RIGHT_BRACKET
 Token:      ]
 
-Token type: EQUAL
+Token type: BOOLEAN_EQUAL
 Token:      ==
 
 Token type: SINGLE_QUOTE
@@ -433,7 +439,7 @@ Token:      i
 Token type: RIGHT_BRACKET
 Token:      ]
 
-Token type: EQUAL
+Token type: BOOLEAN_EQUAL
 Token:      ==
 
 Token type: IDENTIFIER
