@@ -22,11 +22,30 @@ enum class TokenType {
   IDENTIFIER,
   LEFT_PARENTHESIS,
   RIGHT_PARENTHESIS,
+  SEMICOLON,
+  LEFT_BRACE,
+  RIGHT_BRACE,
+  OPERATOR,
+  ASSIGNMENT,
+  INTEGER,
+  BOOLEAN_EQUAL,
+  SINGLE_QUOTE,
+  DOUBLE_QUOTE,
+  STRING,
+  COMMA,
 };
+
+string getReadableTokenType(TokenType t);
 
 class Token {
   public:
     Token(){};
+    Token(string s, TokenType t, unsigned int l, unsigned int p) :
+      spelling(s),
+      type(t),
+      line(l),
+      pos(p)
+      {};
     string getSpelling() {return spelling;};
     TokenType getType() {return type;};
     unsigned int getLine() {return line;};
@@ -53,9 +72,6 @@ class Scanner {
 
   private:
     void error(string msg);
-    unsigned int line = 0;
-    unsigned int pos = 0;
-
     SourceReader sr;
 };
 
