@@ -14,9 +14,10 @@ class StringParser {
         bool parse(char &c);
     private:
         enum class modes {
-            string_single, nonstring, string_double
+            string_single, nonstring, string_double, escape
         };
         modes mode = modes::nonstring;
+        modes prev_mode;
         char ch;
 };
 

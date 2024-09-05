@@ -29,7 +29,15 @@ bool StringParser::parse(char &c) {
         return true;
     }
 
-    /**/
+    if (c == '\\') {
+        prev_mode = mode;
+        mode = modes::escape;
+        return false;
+    }
+    if ((mode == modes::escape) && (c == '\'' || c == '\"')) { // escape character bug
+        mode = prev_mode;
+        return false;
+    }
 
     return false;
 }
