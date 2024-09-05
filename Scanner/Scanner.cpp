@@ -117,7 +117,7 @@ list<Token> Scanner::getTokens() {
     case 'C': \
     case 'D': \
     case 'E': \
-    case 'F': \
+    case 'F':
     
   #define case_afAF \
     case_af \
@@ -192,6 +192,14 @@ list<Token> Scanner::getTokens() {
   #define case_azAZ09_ \
     case_09 \
     case_azAZ_
+  
+  #define addToList(spelling, type) \       
+  l.emplace_back(Token ( \
+    spelling, \
+    type, \
+    sr.getLine(), \
+    sr.getPos() \
+  ))
 
   //states for the state machine
   enum class ss {
@@ -239,12 +247,7 @@ list<Token> Scanner::getTokens() {
             
             sr.unget(string{c});
             
-            l.emplace_back(Token (
-              spelling,
-              TokenType::IDENTIFIER,
-              sr.getLine(),
-              sr.getPos()
-            ));
+            addToList(spelling,TokenType::IDENTIFIER);
 
             spelling = "";
 
@@ -271,12 +274,7 @@ list<Token> Scanner::getTokens() {
               error("Stray &");
             }
 
-            l.emplace_back(Token (
-              "&&",
-              TokenType::BOOLEAN_AND,
-              sr.getLine(),
-              sr.getPos()
-            ));
+            addToList("&&",TokenType::BOOLEAN_AND);
 
           } break;
 
@@ -287,20 +285,10 @@ list<Token> Scanner::getTokens() {
             if (c != '=') {
               sr.unget(string{c});
 
-              l.emplace_back(Token (
-                "<",
-                TokenType::LESS_THAN,
-                sr.getLine(),
-                sr.getPos()
-              ));
+              addToList("<",TokenType::LESS_THAN);
             }
             else {
-              l.emplace_back(Token (
-                "<=",
-                TokenType::LESS_THAN_OR_EQUAL,
-                sr.getLine(),
-                sr.getPos()
-              ));
+              addToList("<=",TokenType::LESS_THAN_OR_EQUAL);
             }
           } break;
 
@@ -309,22 +297,12 @@ list<Token> Scanner::getTokens() {
             if (c != '=') {
               sr.unget(string{c});
 
-              l.emplace_back(Token (
-                ">",
-                TokenType::GREATER_THAN,
-                sr.getLine(),
-                sr.getPos()
-              ));
+              addToList(">",TokenType::GREATER_THAN);
             }
 
             else {
 
-              l.emplace_back(Token (
-                ">=",
-                TokenType::GREATER_THAN_OR_EQUAL,
-                sr.getLine(),
-                sr.getPos()
-              ));
+              addToList(">=",TokenType::GREATER_THAN_OR_EQUAL);
             }
           } break;
 
@@ -336,125 +314,60 @@ list<Token> Scanner::getTokens() {
 
           //start of a string. log the type of quote, then feed the quote to our string processor and stop thinking until it says it's our turn again.
           case '\'': {
-            l.emplace_back(Token (
-              string{c},
-              TokenType::SINGLE_QUOTE,
-              sr.getLine(),
-              sr.getPos()
-            ));
+            addToList(string{c},TokenType::SINGLE_QUOTE);
             state = ss::STRING;
             sp.parse(c);
           } break;
 
           case '\"': {
-            l.emplace_back(Token (
-              string{c},
-              TokenType::DOUBLE_QUOTE,
-              sr.getLine(),
-              sr.getPos()
-            ));
+            addToList(string{c},TokenType::DOUBLE_QUOTE);
             state = ss::STRING;
             sp.parse(c);
           } break;
 
           //from here on out there's just a lot of single-character tokens
           case '(' : {
-            l.emplace_back(Token (
-              string{c},
-              TokenType::LEFT_PARENTHESIS,
-              sr.getLine(),
-              sr.getPos()
-            ));
+            addToList(string{c},TokenType::LEFT_PARENTHESIS);
           } break;
 
           case ')' : {
-            l.emplace_back(Token (
-              string{c},
-              TokenType::RIGHT_PARENTHESIS,
-              sr.getLine(),
-              sr.getPos()
-            ));
+            addToList(string{c},TokenType::RIGHT_PARENTHESIS);
           } break;
 
           case '%' : {
-            l.emplace_back(Token (
-              string{c},
-              TokenType::MODULO,
-              sr.getLine(),
-              sr.getPos()
-            ));
+            addToList(string{c},TokenType::MODULO);
           } break;
 
           case '*' : {
-            l.emplace_back(Token (
-              string{c},
-              TokenType::ASTERISK,
-              sr.getLine(),
-              sr.getPos()
-            ));
+            addToList(string{c},TokenType::ASTERISK);
           } break;
 
           case '{' : {
-            l.emplace_back(Token (
-              string{c},
-              TokenType::LEFT_BRACE,
-              sr.getLine(),
-              sr.getPos()
-            ));
+            addToList(string{c},TokenType::LEFT_BRACE);
           } break;
 
           case '}' : {
-            l.emplace_back(Token (
-              string{c},
-              TokenType::RIGHT_BRACE,
-              sr.getLine(),
-              sr.getPos()
-            ));
+            addToList(string{c},TokenType::RIGHT_BRACE);
           } break;
 
           case ';' : {
-            l.emplace_back(Token (
-              string{c},
-              TokenType::SEMICOLON,
-              sr.getLine(),
-              sr.getPos()
-            ));
+            addToList(string{c},TokenType::SEMICOLON);
           } break;
 
           case ',' : {
-            l.emplace_back(Token (
-              string{c},
-              TokenType::COMMA,
-              sr.getLine(),
-              sr.getPos()
-            ));
+            addToList(string{c},TokenType::COMMA);
           } break;
 
           case '[' : {
-            l.emplace_back(Token (
-              string{c},
-              TokenType::LEFT_BRACKET,
-              sr.getLine(),
-              sr.getPos()
-            ));
+            addToList(string{c},TokenType::LEFT_BRACKET);
           } break;
 
           case ']' : {
-            l.emplace_back(Token (
-              string{c},
-              TokenType::RIGHT_BRACKET,
-              sr.getLine(),
-              sr.getPos()
-            ));
+            addToList(string{c},TokenType::RIGHT_BRACKET);
           } break;
 
           case '/' : {
-            l.emplace_back(Token (
-              string{c},
-              TokenType::DIVIDE,
-              sr.getLine(),
-              sr.getPos()
-            ));
+            addToList(string{c},TokenType::DIVIDE);
           } break;
 
           default: {
@@ -474,12 +387,7 @@ list<Token> Scanner::getTokens() {
 
           default: {
             sr.unget(string{c});
-            l.emplace_back(Token(
-              spelling,
-              (spelling == "+") ? TokenType::PLUS : TokenType::MINUS,
-              sr.getLine(),
-              sr.getPos()
-            ));
+            addToList(spelling,(spelling == "+") ? TokenType::PLUS : TokenType::MINUS);
             spelling = "";
             state = ss::IDLE;
           }
@@ -508,12 +416,7 @@ list<Token> Scanner::getTokens() {
 
             sr.unget(string{c});
             
-            l.emplace_back(Token (
-              spelling,
-              TokenType::INTEGER,
-              sr.getLine(),
-              sr.getPos()
-            ));
+            addToList(spelling,TokenType::INTEGER);
 
             spelling = "";
             state = ss::IDLE;
@@ -529,12 +432,7 @@ list<Token> Scanner::getTokens() {
           default: {
             sr.unget(string{c});
             
-            l.emplace_back(Token (
-              spelling,
-              TokenType::INTEGER,
-              sr.getLine(),
-              sr.getPos()
-            ));
+            addToList(spelling,TokenType::INTEGER);
 
             spelling = "";
             state = ss::IDLE;
@@ -548,12 +446,7 @@ list<Token> Scanner::getTokens() {
           case '=': {
             spelling += "=";
 
-            l.emplace_back( Token(
-              spelling,
-              TokenType::BOOLEAN_EQUAL,
-              sr.getLine(),
-              sr.getPos()
-            ));
+            addToList(spelling,TokenType::BOOLEAN_EQUAL);
 
             spelling = "";
             state = ss::IDLE;
@@ -562,12 +455,7 @@ list<Token> Scanner::getTokens() {
           default: {
             sr.unget(string{c});
 
-            l.emplace_back( Token(
-              spelling,
-              TokenType::ASSIGNMENT,
-              sr.getLine(),
-              sr.getPos()
-            ));
+            addToList(spelling,TokenType::ASSIGNMENT);
 
             spelling = "";
             state = ss::IDLE;
@@ -583,30 +471,15 @@ list<Token> Scanner::getTokens() {
           if (!sr.processSource(c)) break;
         }
 
-        l.emplace_back( Token(
-          spelling,
-          TokenType::STRING,
-          sr.getLine(),
-          sr.getPos()
-        ));
+        addToList(spelling,TokenType::STRING);
 
         state = ss::IDLE;
         spelling = "";
 
         if (c == '\'')
-          l.emplace_back( Token(
-            string{c},
-            TokenType::SINGLE_QUOTE,
-            sr.getLine(),
-            sr.getPos()
-          ));
+          addToList(string{c},TokenType::SINGLE_QUOTE);
         else if (c == '\"')
-          l.emplace_back( Token(
-            string{c},
-            TokenType::DOUBLE_QUOTE,
-            sr.getLine(),
-            sr.getPos()
-          ));
+          addToList(string{c},TokenType::DOUBLE_QUOTE);
         else {
           error("Unexpected character has terminated string");
         }
