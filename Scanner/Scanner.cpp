@@ -117,7 +117,7 @@ list<Token> Scanner::getTokens() {
     case 'C': \
     case 'D': \
     case 'E': \
-    case 'F': \
+    case 'F':
     
   #define case_afAF \
     case_af \
