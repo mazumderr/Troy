@@ -1,0 +1,25 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: make SourceReader
+      run: make -f tests/SourceReader/Makefile
+    - name: execute tests for sourcereader
+      run: ./a.exe
+    - name: more cleanup
+      run: make clean
+    #- name: make check
+    #  run: make check
+    #- name: make distcheck
+    #  run: make distcheck
