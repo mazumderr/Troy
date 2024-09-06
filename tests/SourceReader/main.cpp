@@ -16,29 +16,30 @@ using namespace std;
 
 int main(){
   const string testInputs[] = {
-    "io\\in\\assignment1\\programming_assignment_1-test_file_1.c",
-    "io\\in\\assignment1\\programming_assignment_1-test_file_2.c",
-    "io\\in\\assignment1\\programming_assignment_1-test_file_3.c",
-    "io\\in\\assignment1\\programming_assignment_1-test_file_4.c",
-    "io\\in\\assignment1\\programming_assignment_1-test_file_5.c",
-    "io\\in\\assignment1\\programming_assignment_1-test_file_6.c",
+    "io/in/assignment1/programming_assignment_1-test_file_1.c",
+    "io/in/assignment1/programming_assignment_1-test_file_2.c",
+    "io/in/assignment1/programming_assignment_1-test_file_3.c",
+    "io/in/assignment1/programming_assignment_1-test_file_4.c",
+    "io/in/assignment1/programming_assignment_1-test_file_5.c",
+    "io/in/assignment1/programming_assignment_1-test_file_6.c",
   };
   const string testOutputs[] = {
-    "io\\out\\assignment1\\programming_assignment_1-test_file_1-comments_replaced_with_whitespace.c",
-    "io\\out\\assignment1\\programming_assignment_1-test_file_2-comments_replaced_with_whitespace.c",
-    "io\\out\\assignment1\\programming_assignment_1-test_file_3-comments_replaced_with_whitespace.c",
-    "io\\out\\assignment1\\programming_assignment_1-test_file_4-comments_replaced_with_whitespace.c",
+    "io/out/assignment1/programming_assignment_1-test_file_1-comments_replaced_with_whitespace.c",
+    "io/out/assignment1/programming_assignment_1-test_file_2-comments_replaced_with_whitespace.c",
+    "io/out/assignment1/programming_assignment_1-test_file_3-comments_replaced_with_whitespace.c",
+    "io/out/assignment1/programming_assignment_1-test_file_4-comments_replaced_with_whitespace.c",
     "?",
     "?",
   };
 
   //iterate across all input files
-  for (int i = 0; i < 6; ++i) {
+  for (int i = 0; i < 4; ++i) {
     //open answer key
     ifstream key(testOutputs[i]);
 
     //open source file
     SourceReader s(testInputs[i]);
+
 
     //if the answer key actually exists
     if (key.is_open()) {
