@@ -9,21 +9,21 @@ using namespace std;
 int main(){
 
   string testIns[] = {
-    "io\\in\\assignment2\\programming_assignment_2-test_file_1.c",
-    "io\\in\\assignment2\\programming_assignment_2-test_file_2.c",
-    "io\\in\\assignment2\\programming_assignment_2-test_file_3.c",
-    "io\\in\\assignment2\\programming_assignment_2-test_file_4.c",
-    "io\\in\\assignment2\\programming_assignment_2-test_file_5.c",
-    "io\\in\\assignment2\\programming_assignment_2-test_file_6.c",
+    "io/in/assignment2/programming_assignment_2-test_file_1.c",
+    "io/in/assignment2/programming_assignment_2-test_file_2.c",
+    "io/in/assignment2/programming_assignment_2-test_file_3.c",
+    "io/in/assignment2/programming_assignment_2-test_file_4.c",
+    "io/in/assignment2/programming_assignment_2-test_file_5.c",
+    "io/in/assignment2/programming_assignment_2-test_file_6.c",
   };
 
   string testOuts[] = {
-    "io\\out\\assignment2\\output-programming_assignment_2-test_file_1.txt",
-    "io\\out\\assignment2\\output-programming_assignment_2-test_file_2.txt",
-    "io\\out\\assignment2\\output-programming_assignment_2-test_file_3.txt",
-    "io\\out\\assignment2\\output-programming_assignment_2-test_file_4.txt",
-    "io\\out\\assignment2\\output-programming_assignment_2-test_file_5.txt",
-    "io\\out\\assignment2\\output-programming_assignment_2-test_file_6.txt",
+    "io/out/assignment2/output-programming_assignment_2-test_file_1.txt",
+    "io/out/assignment2/output-programming_assignment_2-test_file_2.txt",
+    "io/out/assignment2/output-programming_assignment_2-test_file_3.txt",
+    "io/out/assignment2/output-programming_assignment_2-test_file_4.txt",
+    "io/out/assignment2/output-programming_assignment_2-test_file_5.txt",
+    "io/out/assignment2/output-programming_assignment_2-test_file_6.txt",
   };
 
   //iterate across input files
