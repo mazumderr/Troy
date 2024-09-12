@@ -60,12 +60,12 @@ bool SourceReader::processSource(char &c) {
         if (mode == modes::block) {
             std::cerr << "ERROR: Program contains C-style, unterminated comment on line " << begin_comment;
             inputStream.close();
-            exit(1);
+            return false;
         }
         if (stringParser.parse(c)) {                // unterminated string error
             std::cerr << "ERROR: Program contains unterminated string!";
             inputStream.close();
-            exit(1);
+            return false;
         }
         inputStream.close();
         return false;
@@ -93,7 +93,7 @@ bool SourceReader::processSource(char &c) {
             if (mode == modes::normal) {
                 std::cerr << "ERROR: Program contains C-style, unterminated comment on line " << line_count;
                 inputStream.close();
-                exit(1);
+                return false;
             }
             //c = ' ';
             if (mode == modes::block) {              // mode switch when reaching end of comment block
