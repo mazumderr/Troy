@@ -8,6 +8,11 @@ StringParser::StringParser() {}
 
 bool StringParser::parse(char &c) {
     // single quote
+    if (c == '\\') {
+        prev_mode = mode;
+        mode = modes::escape;
+        return false;
+    }
     if ((c == '\'') && (mode == modes::nonstring)) {
         mode = modes::string_single;
         return true;
@@ -29,11 +34,6 @@ bool StringParser::parse(char &c) {
         return true;
     }
 
-    if (c == '\\') {
-        prev_mode = mode;
-        mode = modes::escape;
-        return false;
-    }
     if ((mode == modes::escape) && (c == '\'' || c == '\"')) { // escape character bug
         mode = prev_mode;
         return false;
