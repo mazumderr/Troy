@@ -3,7 +3,7 @@
 //
 
 #include "SourceReader.h"
-// constructor
+
 SourceReader::SourceReader() {
 }
 
@@ -41,7 +41,6 @@ void SourceReader::unget(const std::string &str) {
 
 bool SourceReader::processSource(char &c) {
 
-    //inputStream.open(sourceFile,std::ios::in);
     // Make sure file exists
     if (!inputStream.is_open()) {
         std::cerr << "File not found!" << std::endl;
@@ -49,86 +48,79 @@ bool SourceReader::processSource(char &c) {
     }
 
     ++pos;
-    //if there's any ungetBuffer to work with, start there
+    // if there's any ungetBuffer to work with, start there
     if (ungetBuffer.get(c)) {
         return true;
     }
+
     // Read file character by character
     inputStream.get(c);
-
+    //EOF and EOF errors
     if (inputStream.eof()) {
         if (mode == modes::block) {
-            std::cerr << "ERROR: Program contains C-style, unterminated comment on line " << begin_comment;
-            inputStream.close();
-            return false;
+            std::cerr << "ERROR: Program contains C-style, unterminated comment on line "
+            << begin_comment << std::endl;
         }
-        if (stringParser.parse(c)) {                // unterminated string error
+        if (stringParser.parse(c)) {
             std::cerr << "ERROR: Program contains unterminated string!";
-            inputStream.close();
-            return false;
         }
         inputStream.close();
         return false;
     }
-
-    //inputStream.get(c);
-    // check for strings
-    /**/
-    if ((mode == modes::normal) && (stringParser.parse(c))) { // string mode
+    // string handling
+    if ((mode == modes::normal) && (stringParser.parse(c))) {
         return true;
     }
-
-
-    if (c == '/') {                                // comment found
-        if (inputStream.peek() == '/') {          // single comment state
-            mode = modes::single;
-        }
-        else if ((inputStream.peek() == '*') && mode != modes::single) {
-            mode = modes::block;                   // comment block state
-            begin_comment = line_count;
-        }
-    }
-    if (c == '*') {
-        if (inputStream.peek() == '/') {            // terminate comment block, switch modes
-            if (mode == modes::normal) {
-                std::cerr << "ERROR: Program contains C-style, unterminated comment on line " << line_count;
-                inputStream.close();
-                return false;
+    // DFA
+    switch (c) {
+        // begin comment
+        case '/':
+            if (inputStream.peek() == '/') {
+                mode = modes::single;
             }
-            //c = ' ';
-            if (mode == modes::block) {              // mode switch when reaching end of comment block
-                mode = modes::eocb;
-                c = ' ';
+            else if (inputStream.peek() == '*' && mode != modes::single) {
+                mode = modes::block;
+                begin_comment = line_count;
+            }
+            break;
+        // end comment
+        case '*':
+            if (inputStream.peek() == '/') {
+                if (mode == modes::normal) {
+                    std::cerr << "ERROR: Program contains C-style, unterminated comment on line "
+                    << line_count << std::endl;
+                    inputStream.close();
+                    return false;
+                }
+                if (mode == modes::block) {
+                    mode = modes::eocb;
+                    c = ' ';
+                    return true;
+                }
+            }
+            break;
+        // newline
+        case '\n':
+            line_count++;
+            pos = 0;
+            if (mode == modes::single) {
+                mode = modes::normal;
                 return true;
             }
-        }
-        //return true;
+            if (mode == modes::block) {
+                return true;
+            }
+        // none of the above
+        default:
+            break;
     }
-    if (c == '\n') {                               // newline
-        line_count++;
-        pos = 0;
-        if (mode == modes::single) {
-            mode = modes::normal;
-            return true;
-        }
-        if (mode == modes::block) {
-            return true;
-        }
-    }
-    if ((mode == modes::single) || (mode == modes::block)) {          // single and block comment
+    // modes
+    if ((mode == modes::single) || (mode == modes::block)) {
         c = ' ';
-        return true;
     }
     if (mode == modes::eocb) {
         c = ' ';
         mode = modes::normal;
     }
-    /*
-    if (mode == modes::block) {                     // block comment
-        c = ' ';
-        return true;
-    }
-    */
-
-    return true;                                    // source code
+    return true;
 }
