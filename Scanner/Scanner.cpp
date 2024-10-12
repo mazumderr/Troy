@@ -52,7 +52,14 @@ string getReadableTokenType(TokenType t) {
     case TokenType::BOOLEAN_AND: return "BOOLEAN_AND";
     case TokenType::LEFT_BRACKET: return "LEFT_BRACKET";
     case TokenType::RIGHT_BRACKET: return "RIGHT_BRACKET";
+    case TokenType::BOOLEAN_OR: return "BOOLEAN_OR";
+    case TokenType::NOT: return "NOT";
+    case TokenType::NOT_EQUAL: return "NOT_EQUAL";
   }
+
+  cerr << "getReadableTokenType: catastrophic failure, unknown token" << endl;
+  exit(-1);
+  return "";
 }
 
 /**
@@ -193,7 +200,7 @@ list<Token> Scanner::getTokens() {
     case_09 \
     case_azAZ_
   
-  #define addToList(spelling, type) \       
+  #define addToList(spelling, type)\
   l.emplace_back(Token ( \
     spelling, \
     type, \
@@ -278,6 +285,17 @@ list<Token> Scanner::getTokens() {
 
           } break;
 
+          case '|' : {
+            sr.processSource(c);
+
+            if (c != '|') {
+              error("Stray |");
+            }
+
+            addToList("||",TokenType::BOOLEAN_OR);
+
+          } break;
+
           //< and > cases MIGHT have an equals afterwards, not really worth breaking out into a separate state
           case '<' : {
             sr.processSource(c);
@@ -303,6 +321,20 @@ list<Token> Scanner::getTokens() {
             else {
 
               addToList(">=",TokenType::GREATER_THAN_OR_EQUAL);
+            }
+          } break;
+
+          case '!' : {
+            sr.processSource(c);
+            if (c != '=') {
+              sr.unget(string{c});
+
+              addToList("!",TokenType::NOT);
+            }
+
+            else {
+
+              addToList("!=",TokenType::NOT_EQUAL);
             }
           } break;
 
