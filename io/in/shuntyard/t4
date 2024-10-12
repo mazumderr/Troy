@@ -1,0 +1,1 @@
+(aaa != 0) || (bbb > (ccc + ddd * eee)) && (fff > 6)
