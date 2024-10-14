@@ -44,6 +44,9 @@ enum class TokenType {
   LESS_THAN_OR_EQUAL,
   GREATER_THAN_OR_EQUAL,
   BOOLEAN_AND,
+  BOOLEAN_OR,
+  NOT,
+  NOT_EQUAL,
 };
 
 string getReadableTokenType(TokenType t);
