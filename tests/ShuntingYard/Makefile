@@ -1,8 +1,8 @@
 a.exe: main.o
 	g++ -std=c++20 main.o SourceReader.o StringParser.o Scanner.o -o a.exe
 
-main.o: main.cpp Scanner.o
-	g++ -c -std=c++20 main.cpp -o main.o
+main.o: tests/ShuntingYard/main.cpp Scanner.o
+	g++ -c -std=c++20 tests/ShuntingYard/main.cpp
 
 SourceReader.o: SourceReader.cpp SourceReader.h StringParser.o
 	g++ -c -std=c++20 SourceReader.cpp -o SourceReader.o
@@ -12,21 +12,3 @@ StringParser.o: StringParser.cpp StringParser.h
 
 Scanner.o: Scanner/Scanner.hpp Scanner/Scanner.cpp SourceReader.o
 	g++ -c -std=c++20 Scanner/Scanner.cpp -o Scanner.o
-
-clean:
-	rm -rf *.o
-
-assignment1:
-	make -f deliverables/assignment1/Makefile
-
-assignment2:
-	make -f deliverables/assignment2/Makefile
-	
-TestSourceReader:
-	make -f tests/SourceReader/Makefile
-
-TestScanner:
-	make -f tests/Scanner/Makefile
-
-TestExpressionConverter:
-	make -f tests/ShuntingYard/Makefile
