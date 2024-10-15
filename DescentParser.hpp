@@ -29,6 +29,8 @@ class DescentParser {
 
   private:
     Scanner s;
+    string getLowercase(const string&);
+    bool wordIsForbidden(const string&);
 };
 
 #endif

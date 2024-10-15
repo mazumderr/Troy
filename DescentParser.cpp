@@ -48,6 +48,9 @@ CodeTree* DescentParser::parse() {
 
   enum class ss {
     START,
+    SEEN_IDENTIFIER,
+    FUNC_DEF,
+    PROC_DEF,
     IGNORE,
   };
 
@@ -56,15 +59,7 @@ CodeTree* DescentParser::parse() {
   for (auto t = tokenList.begin(); t != tokenList.end(); ++t) {
     auto nt = next(t,1);
 
-    // switch(state) {
-    //   case ss::START:
-    //     if 
-    //   break;
-
-    //   case ss::IGNORE:
-    //   break;
-    // }
-
+    //form this node in the tree
     if (prevPtr != nullptr) {
       if (descend) {
         prevPtr->setChild(new CodeTree(*t));
@@ -80,7 +75,7 @@ CodeTree* DescentParser::parse() {
       root = prevPtr;
     }
 
-
+    //figure out next branch
     if ((t->getType() == TokenType::SEMICOLON) ||
         (t->getType() == TokenType::LEFT_BRACE) ||
         (t->getType() == TokenType::RIGHT_BRACE) ||
@@ -96,7 +91,86 @@ CodeTree* DescentParser::parse() {
     else {
       descend = false;
     }
+
+    const string lspell = getLowercase(t->getSpelling());
+
+    //check for errors
+    switch(state) {
+      case ss::START:
+        // cout << t->getLine() << " start of statement: " << t->getSpelling() << endl;
+        switch (t->getType()) {
+          case TokenType::IDENTIFIER:
+            if (lspell == "function") {
+              state = ss::IGNORE;
+            }
+            else if (lspell == "procedure") {
+              state = ss::IGNORE;
+            }
+            else if (lspell == "return") {
+              state = ss::IGNORE;
+            }
+            else {
+              state = ss::SEEN_IDENTIFIER;
+            }
+          break;
+          default:
+            //if there's more to this statement, we really don't care
+            state = ss::IGNORE;
+        }
+      break;
+
+      case ss::SEEN_IDENTIFIER:
+        switch (t->getType()) {
+          case TokenType::IDENTIFIER:
+            if (wordIsForbidden(lspell)) {
+              cout << "Syntax error on line " << t->getLine()
+                << ": reserved word \"" << t->getSpelling() << "\" cannot be used for the name of a variable."
+                << endl;
+              exit(-1);
+            }
+            state = ss::IGNORE;
+          break;
+          default:
+            state = ss::IGNORE;
+        }
+      break;
+
+      case ss::IGNORE:
+      break;
+    }
+
+    //reset for the start of each statement
+    if (descend)
+      state = ss::START;
   }
 
   return root;
+}
+
+string DescentParser::getLowercase(const string &s) {
+  string out;
+  
+  for (auto c: s) {
+    out += tolower(c);
+  }
+
+  return out;
+}
+
+bool DescentParser::wordIsForbidden(const string &s) {
+  string forbidden[] = {
+    "char",
+    "function",
+    "procedure",
+    "void",
+    "printf",
+  };
+  #define forbiddenCount 5
+  
+  for (unsigned int i = 0; i < forbiddenCount; ++i) {
+    if (s == forbidden[i]) {
+      return true;
+    }
+  }
+  return false;
 }
