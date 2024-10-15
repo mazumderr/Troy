@@ -44,6 +44,33 @@ class DescentParser {
     Scanner s;
     string getLowercase(const string&);
     bool wordIsForbidden(const string&);
+
+    CodeNode* parse(const list<Token>::iterator&, const list<Token>::iterator&);
+
+    enum class ss {
+      START,
+      SEEN_IDENTIFIER,
+      DECLARED_VARIABLE,
+      ARRAY_DECLARATION,
+      FUNC_RETURN_TYPE,
+      FUNC_NAME,
+      FUNC_OPEN,
+      FUNC_ARGTYPE,
+      FUNC_ARGNAME,
+      FUNC_COMMACLOSE,
+      PROC_DEF,
+      IGNORE,
+    };
+
+    enum class fs {
+      NONE,
+      EXPECTING_FIRST_SEMI,
+      EXPECTING_SECOND_SEMI,
+    };
+
+    ss state = ss::START;
+    fs forState = fs::NONE;
+    bool descend = false;
 };
 
 #endif
