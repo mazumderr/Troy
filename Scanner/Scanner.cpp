@@ -526,3 +526,10 @@ list<Token> Scanner::getTokens() {
 
   return l;
 }
+
+Token::Token(const Token &other) {
+  this->spelling = other.spelling;
+  this->type = other.type;
+  this->line = other.line;
+  this->pos = other.pos;
+}
