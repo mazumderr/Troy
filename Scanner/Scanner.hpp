@@ -54,6 +54,7 @@ string getReadableTokenType(TokenType t);
 class Token {
   public:
     Token(){};
+    explicit Token(const Token& other);
     Token(string s, TokenType t, unsigned int l, unsigned int p) :
       spelling(s),
       type(t),

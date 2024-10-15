@@ -30,3 +30,6 @@ TestScanner:
 
 TestExpressionConverter:
 	make -f tests/ShuntingYard/Makefile
+
+assignment3:
+	make -f deliverables/assignment3/Makefile

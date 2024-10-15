@@ -62,7 +62,7 @@ bool SourceReader::processSource(char &c) {
             << begin_comment << std::endl;
         }
         if (stringParser.parse(c)) {
-            std::cerr << "ERROR: Program contains unterminated string!";
+            std::cerr << "ERROR: Program contains unterminated string!" << std::endl;
         }
         inputStream.close();
         return false;
