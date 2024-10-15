@@ -49,6 +49,8 @@ CodeTree* DescentParser::parse() {
   enum class ss {
     START,
     SEEN_IDENTIFIER,
+    DECLARED_VARIABLE,
+    ARRAY_DECLARATION,
     FUNC_RETURN_TYPE,
     FUNC_NAME,
     FUNC_OPEN,
@@ -59,7 +61,14 @@ CodeTree* DescentParser::parse() {
     IGNORE,
   };
 
+  enum class fs {
+    NONE,
+    EXPECTING_FIRST_SEMI,
+    EXPECTING_SECOND_SEMI,
+  };
+
   ss state = ss::START;
+  fs forState = fs::NONE;
 
   for (auto t = tokenList.begin(); t != tokenList.end(); ++t) {
     auto nt = next(t,1);
@@ -114,6 +123,9 @@ CodeTree* DescentParser::parse() {
             else if (lspell == "return") {
               state = ss::IGNORE;
             }
+            else if (lspell == "for") {
+              forState = fs::EXPECTING_FIRST_SEMI;
+            }
             else {
               state = ss::SEEN_IDENTIFIER;
             }
@@ -131,6 +143,30 @@ CodeTree* DescentParser::parse() {
               cout << "Syntax error on line " << t->getLine()
                 << ": reserved word \"" << t->getSpelling() << "\" cannot be used for the name of a variable."
                 << endl;
+              exit(-1);
+            }
+            state = ss::DECLARED_VARIABLE;
+          break;
+          default:
+            state = ss::IGNORE;
+        }
+      break;
+
+      case ss::DECLARED_VARIABLE:
+        switch (t->getType()) {
+          case TokenType::LEFT_BRACKET:
+            state = ss::ARRAY_DECLARATION;
+          break;
+          default:
+            state = ss::IGNORE;
+        }
+      break;
+
+      case ss::ARRAY_DECLARATION:
+        switch (t->getType()) {
+          case TokenType::INTEGER:
+            if (stoi(lspell) <= 0) {
+              cout << "Syntax error on line " << t->getLine() << ": array declaration size must be a positive integer." << endl;
               exit(-1);
             }
             state = ss::IGNORE;
@@ -197,6 +233,26 @@ CodeTree* DescentParser::parse() {
 
     //reset for the start of each statement
     if (descend) state = ss::START;
+    
+    //special handling for for statements
+    switch(forState) {
+      case fs::EXPECTING_FIRST_SEMI: {
+        descend = false;
+
+        if (t->getType() == TokenType::SEMICOLON)
+          forState = fs::EXPECTING_SECOND_SEMI;
+      };
+      break;
+
+      case fs::EXPECTING_SECOND_SEMI:
+        descend = false;
+
+        if (t->getType() == TokenType::SEMICOLON)
+          forState = fs::NONE;
+      break;
+      
+      default: {};
+    }
   }
 
   return root;
