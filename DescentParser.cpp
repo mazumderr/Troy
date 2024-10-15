@@ -1,49 +1,121 @@
+/**
+ * @file DescentParser.cpp
+ * @author Bo Thompson (extralife.xyz)
+ * @brief implementation of the CodeNode and DecentParser functions
+ * @version 0.1
+ * @date 2024-10-15
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #include "DescentParser.hpp"
 
-CodeTree::CodeTree(const Token &t) {
-  token = new Token(t);
+/**
+ * @brief Construct a new Code Node:: Code Node object
+ * 
+ * @param t token to copy and save as ours
+ */
+CodeNode::CodeNode(const Token &t) {
+  setToken(new Token(t));
 }
 
-Token* CodeTree::getToken() {
+
+/**
+ * @brief Destroy the Code Node:: Code Node object
+ * 
+ */
+CodeNode::~CodeNode() {
+  if (child)
+    delete child;
+  if (sibling)
+    delete sibling;
+  if (token)
+    delete token;
+}
+
+/**
+ * @brief gets the token for this node
+ * 
+ * @return Token* 
+ */
+Token* CodeNode::getToken() {
   return token;
 }
 
-CodeTree *CodeTree::getChild() {
+/**
+ * @brief gets the child of this node
+ * 
+ * @return CodeNode* of the child, probably nullptr
+ */
+CodeNode *CodeNode::getChild() {
   return child;
 }
 
-CodeTree *CodeTree::getSibling() {
+/**
+ * @brief get the sibling of this node
+ * 
+ * @return CodeNode* of the sibling, or maaaaybe a nullptr
+ */
+CodeNode *CodeNode::getSibling() {
   return sibling;
 }
 
-void CodeTree::setChild(CodeTree *c) {
+/**
+ * @brief set the child of this node
+ * 
+ * @param c new child pointer
+ */
+void CodeNode::setChild(CodeNode *c) {
   child = c;
 }
 
-void CodeTree::setSibling(CodeTree *s) {
+/**
+ * @brief set the sibling of this node
+ * 
+ * @param s new sibling pointer
+ */
+void CodeNode::setSibling(CodeNode *s) {
   sibling = s;
 }
 
 
-
+/**
+ * @brief Construct a new Descent Parser:: Descent Parser object. YOU'D BETTER CALL OPEN NEXT
+ * 
+ */
 DescentParser::DescentParser() {
 }
 
+/**
+ * @brief Construct a new Descent Parser:: Descent Parser object the safe way
+ * 
+ * @param fname filename to open for the underlying scanner object
+ */
 DescentParser::DescentParser(const string &fname) {
   open(fname);
 }
 
+/**
+ * @brief Open a filename with the underlying scanner object
+ * 
+ * @param fname 
+ */
 void DescentParser::open(const string &fname) {
   s.open(fname);
 }
 
-CodeTree* DescentParser::parse() {
+/**
+ * @brief where the magic happens. Creates a parse tree and error tests to be compliant with Assignment 3
+ * 
+ * @return CodeNode* the root of the parse tree
+ */
+CodeNode* DescentParser::parse() {
   list<Token> tokenList = s.getTokens();
 
   if (tokenList.empty())  return nullptr;
 
-  CodeTree* root = nullptr;
-  CodeTree* prevPtr = nullptr;
+  CodeNode* root = nullptr;
+  CodeNode* prevPtr = nullptr;
   bool descend = false;
 
   enum class ss {
@@ -76,16 +148,16 @@ CodeTree* DescentParser::parse() {
     //form this node in the tree
     if (prevPtr != nullptr) {
       if (descend) {
-        prevPtr->setChild(new CodeTree(*t));
+        prevPtr->setChild(new CodeNode(*t));
         prevPtr = prevPtr->getChild();
       }
       else {
-        prevPtr->setSibling(new CodeTree(*t));
+        prevPtr->setSibling(new CodeNode(*t));
         prevPtr = prevPtr->getSibling();
       }
     }
     else {
-      prevPtr = new CodeTree(*t);
+      prevPtr = new CodeNode(*t);
       root = prevPtr;
     }
 

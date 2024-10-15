@@ -11,20 +11,20 @@ int main(int argc, char** argv){
   }
 
   //okay now assume that argv[1] is the desired input filename :D
-  CodeTree* t;
+  CodeNode* t;
   {
     DescentParser d(argv[1]);
     t = d.parse();
   }
 
-  CodeTree* ptr = t;
+  CodeNode* ptr = t;
   unsigned int tab = 0;
   while (ptr != nullptr) {
     cout << getReadableTokenType(ptr->getToken()->getType()) << "\""
       << ptr->getToken()->getSpelling() << "\"";
 
-    CodeTree* sibling = ptr->getSibling();
-    CodeTree* child = ptr->getChild();
+    CodeNode* sibling = ptr->getSibling();
+    CodeNode* child = ptr->getChild();
     if (sibling) {
       ++tab;
       cout << "\t";
