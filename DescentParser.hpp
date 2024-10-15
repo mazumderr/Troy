@@ -24,6 +24,7 @@ class CodeNode {
     void setChild(CodeNode*);
     void setSibling(CodeNode*);
     void setToken(Token*);
+    void setToken(const Token&);
 
   private:
     CodeNode* child = nullptr;

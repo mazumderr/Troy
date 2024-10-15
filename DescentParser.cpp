@@ -43,6 +43,22 @@ Token* CodeNode::getToken() {
 }
 
 /**
+ * @brief sets the token for this node
+ * 
+ */
+void CodeNode::setToken(Token* t) {
+  token = t;
+}
+
+/**
+ * @brief sets the token for this node, copy version
+ * 
+ */
+void CodeNode::setToken(const Token& t) {
+  token = new Token(t);
+}
+
+/**
  * @brief gets the child of this node
  * 
  * @return CodeNode* of the child, probably nullptr
