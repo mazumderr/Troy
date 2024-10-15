@@ -49,7 +49,12 @@ CodeTree* DescentParser::parse() {
   enum class ss {
     START,
     SEEN_IDENTIFIER,
-    FUNC_DEF,
+    FUNC_RETURN_TYPE,
+    FUNC_NAME,
+    FUNC_OPEN,
+    FUNC_ARGTYPE,
+    FUNC_ARGNAME,
+    FUNC_COMMACLOSE,
     PROC_DEF,
     IGNORE,
   };
@@ -101,7 +106,7 @@ CodeTree* DescentParser::parse() {
         switch (t->getType()) {
           case TokenType::IDENTIFIER:
             if (lspell == "function") {
-              state = ss::IGNORE;
+              state = ss::FUNC_RETURN_TYPE;
             }
             else if (lspell == "procedure") {
               state = ss::IGNORE;
@@ -135,13 +140,63 @@ CodeTree* DescentParser::parse() {
         }
       break;
 
-      case ss::IGNORE:
+      case ss::FUNC_RETURN_TYPE:
+        //don't actually care about what happens here... yet
+        state = ss::FUNC_NAME;        
       break;
+
+      case ss::FUNC_NAME:
+        switch(t->getType()) {
+          case TokenType::IDENTIFIER:
+            if (wordIsForbidden(lspell)) {
+              cout << "Syntax error on line " << t->getLine()
+                << ": reserved word \"" << t->getSpelling() << "\" cannot be used for the name of a function."
+                << endl;
+              exit(-1);
+            }
+            state = ss::FUNC_OPEN;
+          break;
+          default:
+            state = ss::IGNORE;
+        }
+      break;
+
+      case ss::FUNC_OPEN:
+        state = ss::FUNC_ARGTYPE;
+      break;
+
+      case ss::FUNC_ARGTYPE:
+        state = ss::FUNC_ARGNAME;
+      break;
+
+      case ss::FUNC_ARGNAME:
+        if (wordIsForbidden(lspell)) {
+          cout << "Syntax error on line " << t->getLine()
+            << ": reserved word \"" << t->getSpelling() << "\" cannot be used for the name of a variable."
+            << endl;
+          exit(-1);
+        }
+        state = ss::FUNC_COMMACLOSE;
+      break;
+
+      case ss::FUNC_COMMACLOSE: {
+        switch (t->getType()) {
+          case TokenType::COMMA:
+            state = ss::FUNC_ARGTYPE;
+          break;
+          case TokenType::RIGHT_PARENTHESIS:
+            state = ss::IGNORE;
+          break;
+          default: {}
+        }
+      }
+
+      case ss::IGNORE:
+      default:{}
     }
 
     //reset for the start of each statement
-    if (descend)
-      state = ss::START;
+    if (descend) state = ss::START;
   }
 
   return root;
@@ -164,8 +219,9 @@ bool DescentParser::wordIsForbidden(const string &s) {
     "procedure",
     "void",
     "printf",
+    "int",
   };
-  #define forbiddenCount 5
+  #define forbiddenCount 6
   
   for (unsigned int i = 0; i < forbiddenCount; ++i) {
     if (s == forbidden[i]) {
