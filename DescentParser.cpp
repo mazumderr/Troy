@@ -195,7 +195,7 @@ CodeNode* DescentParser::parse(const list<Token>::iterator& t, const list<Token>
       switch (t->getType()) {
         case TokenType::IDENTIFIER:
           if (wordIsForbidden(lspell)) {
-            cout << "Syntax error on line " << t->getLine()
+            cerr << "Syntax error on line " << t->getLine()
               << ": reserved word \"" << t->getSpelling() << "\" cannot be used for the name of a variable."
               << endl;
             exit(-1);
@@ -221,7 +221,7 @@ CodeNode* DescentParser::parse(const list<Token>::iterator& t, const list<Token>
       switch (t->getType()) {
         case TokenType::INTEGER:
           if (stoi(lspell) <= 0) {
-            cout << "Syntax error on line " << t->getLine() << ": array declaration size must be a positive integer." << endl;
+            cerr << "Syntax error on line " << t->getLine() << ": array declaration size must be a positive integer." << endl;
             exit(-1);
           }
           state = ss::IGNORE;
@@ -240,7 +240,7 @@ CodeNode* DescentParser::parse(const list<Token>::iterator& t, const list<Token>
       switch(t->getType()) {
         case TokenType::IDENTIFIER:
           if (wordIsForbidden(lspell)) {
-            cout << "Syntax error on line " << t->getLine()
+            cerr << "Syntax error on line " << t->getLine()
               << ": reserved word \"" << t->getSpelling() << "\" cannot be used for the name of a function."
               << endl;
             exit(-1);
@@ -262,7 +262,7 @@ CodeNode* DescentParser::parse(const list<Token>::iterator& t, const list<Token>
 
     case ss::FUNC_ARGNAME:
       if (wordIsForbidden(lspell)) {
-        cout << "Syntax error on line " << t->getLine()
+        cerr << "Syntax error on line " << t->getLine()
           << ": reserved word \"" << t->getSpelling() << "\" cannot be used for the name of a variable."
           << endl;
         exit(-1);
