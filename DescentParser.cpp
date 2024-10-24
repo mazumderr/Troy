@@ -118,6 +118,10 @@ DescentParser::DescentParser(const string &fname) {
  */
 void DescentParser::open(const string &fname) {
   s.open(fname);
+
+  typemap["int"] = SymbolType::INT;
+  typemap["char"] = SymbolType::CHAR;
+  typemap["bool"] = SymbolType::BOOL;
 }
 
 /**
@@ -166,13 +170,14 @@ CodeNode* DescentParser::parse(const list<Token>::iterator& t, const list<Token>
   //check for errors
   switch(state) {
     case ss::START:
-      // cout << t->getLine() << " start of statement: " << t->getSpelling() << endl;
       switch (t->getType()) {
         case TokenType::IDENTIFIER:
           if (lspell == "function") {
+            curSymbol = new CallableSymbol();
             state = ss::FUNC_RETURN_TYPE;
           }
           else if (lspell == "procedure") {
+            curSymbol = new CallableSymbol();
             state = ss::IGNORE;
           }
           else if (lspell == "return") {
@@ -232,7 +237,7 @@ CodeNode* DescentParser::parse(const list<Token>::iterator& t, const list<Token>
     break;
 
     case ss::FUNC_RETURN_TYPE:
-      //don't actually care about what happens here... yet
+      setSymbolReturnType(*t);
       state = ss::FUNC_NAME;        
     break;
 
@@ -245,6 +250,7 @@ CodeNode* DescentParser::parse(const list<Token>::iterator& t, const list<Token>
               << endl;
             exit(-1);
           }
+          setSymbolName(*t);
           state = ss::FUNC_OPEN;
         break;
         default:
@@ -257,6 +263,8 @@ CodeNode* DescentParser::parse(const list<Token>::iterator& t, const list<Token>
     break;
 
     case ss::FUNC_ARGTYPE:
+      curArgs.push_back(new Symbol);
+      curArgs.back()->type = typemap[getLowercase(t->getSpelling())];
       state = ss::FUNC_ARGNAME;
     break;
 
@@ -267,6 +275,7 @@ CodeNode* DescentParser::parse(const list<Token>::iterator& t, const list<Token>
           << endl;
         exit(-1);
       }
+      curArgs.back()->name = t->getSpelling();
       state = ss::FUNC_COMMACLOSE;
     break;
 
@@ -276,6 +285,17 @@ CodeNode* DescentParser::parse(const list<Token>::iterator& t, const list<Token>
           state = ss::FUNC_ARGTYPE;
         break;
         case TokenType::RIGHT_PARENTHESIS:
+          //FIXME: this is duplicating shit and should probably be moved to the heap
+          ((CallableSymbol*)curSymbol)->arguments = curArgs;
+          curArgs.clear();
+
+          cout << "I got a function called " << curSymbol->name << endl;
+          for (auto s: ((CallableSymbol*)curSymbol)->arguments) {
+            cout << "\t" 
+              << getReadableSymbolType(s->type) << " "
+              << s->name << endl;
+          }
+
           state = ss::IGNORE;
         break;
         default: {}
@@ -317,6 +337,14 @@ CodeNode* DescentParser::parse(const list<Token>::iterator& t, const list<Token>
   }
 
   return thisNode;
+}
+
+void DescentParser::setSymbolReturnType(const Token &t) {
+  ((CallableSymbol*)curSymbol)->returnType = typemap[getLowercase(t.getSpelling())];
+}
+
+void DescentParser::setSymbolName(const Token &t) {
+  curSymbol->name = getLowercase(t.getSpelling());
 }
 
 string DescentParser::getLowercase(const string &s) {

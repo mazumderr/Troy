@@ -12,6 +12,8 @@
 #define DESCENTPARSER_HPP
 
 #include "Scanner/Scanner.hpp"
+#include "SymbolTable.hpp"
+#include <map>
 
 class CodeNode {
   public:
@@ -41,6 +43,7 @@ class DescentParser {
     CodeNode* parse();
 
   private:
+    list<Symbol*> SymbolTable;
     Scanner s;
     string getLowercase(const string&);
     bool wordIsForbidden(const string&);
@@ -71,6 +74,13 @@ class DescentParser {
     ss state = ss::START;
     fs forState = fs::NONE;
     bool descend = false;
+
+    list<Symbol*> curArgs;
+    Symbol* curSymbol = nullptr;
+    void setSymbolReturnType(const Token& t);
+    void setSymbolName(const Token& t);
+
+    map<string, SymbolType> typemap;
 };
 
 #endif

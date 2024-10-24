@@ -61,7 +61,7 @@ class Token {
       line(l),
       pos(p)
       {};
-    string getSpelling() {return spelling;};
+    string getSpelling() const {return spelling;};
     TokenType getType() {return type;};
     unsigned int getLine() {return line;};
     unsigned int getPos() {return pos;};
