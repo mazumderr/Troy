@@ -20,17 +20,21 @@ string getReadableSymbolType(const SymbolType& t) {
   }
 }
 
-void Symbol::print() {
+void Symbol::print(bool printITypeLine) {
   //I am fully aware that this would have been a lot simpler if my symbol structure
   //more closely reflected the professor's output
   //but I refuse to compromise on that
   cout << "      IDENTIFIER_NAME: " << name << endl;
-  cout << "      IDENTIFIER_TYPE: " << (
-    type == SymbolType::FUNCTION || type == SymbolType::PROCEDURE ?
-      getReadableSymbolType(type)
-      :
-      "datatype"
-  ) << endl;
+  
+  if (printITypeLine) {
+    cout << "      IDENTIFIER_TYPE: " << (
+      type == SymbolType::FUNCTION || type == SymbolType::PROCEDURE ?
+        getReadableSymbolType(type)
+        :
+        "datatype"
+    ) << endl;
+  }
+  
   cout << "             DATATYPE: " << (
     type == SymbolType::PROCEDURE ?
       "NOT APPLICABLE"

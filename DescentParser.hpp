@@ -55,6 +55,7 @@ class DescentParser {
     enum class ss {
       START,
       SEEN_IDENTIFIER,
+      VARIABLE_NAME,
       DECLARED_VARIABLE,
       ARRAY_DECLARATION,
       FUNC_RETURN_TYPE,

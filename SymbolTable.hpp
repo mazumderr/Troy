@@ -22,7 +22,7 @@ struct Symbol {
   bool isArray = false;
   unsigned int arraySize = 0;
 
-  void print();
+  void print(bool);
 };
 
 struct CallableSymbol: public Symbol {

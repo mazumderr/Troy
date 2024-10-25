@@ -221,13 +221,10 @@ CodeNode* DescentParser::parse(const list<Token>::iterator& t, const list<Token>
             //if it is, the next token should also be an identifier
             if (nt != end && nt->getType() == TokenType::IDENTIFIER) {
               curSymbol = new Symbol;
-              curSymbol->scope = curScope;
-              curSymbol->name = nt->getSpelling();
               curSymbol->type = typemap[getLowercase(t->getSpelling())];
+              curSymbol->scope = curScope;
 
-              //ok, skip the variable name, we already got that
-              nt = next(nt);
-              state = ss::DECLARED_VARIABLE;
+              state = ss::VARIABLE_NAME;
             }
 
             else state = ss::SEEN_IDENTIFIER;
@@ -239,17 +236,21 @@ CodeNode* DescentParser::parse(const list<Token>::iterator& t, const list<Token>
       }
     break;
 
+    case ss::VARIABLE_NAME: {
+      if (wordIsForbidden(lspell)) {
+        cout << "Syntax error on line " << t->getLine()
+          << ": reserved word \"" << t->getSpelling() << "\" cannot be used for the name of a variable."
+          << endl;
+        exit(-1);
+      }
+      curSymbol->name = t->getSpelling();
+      
+      state = ss::DECLARED_VARIABLE;
+    }
+    break;
+
     case ss::SEEN_IDENTIFIER:
       switch (t->getType()) {
-        case TokenType::IDENTIFIER:
-          if (wordIsForbidden(lspell)) {
-            cout << "Syntax error on line " << t->getLine()
-              << ": reserved word \"" << t->getSpelling() << "\" cannot be used for the name of a variable."
-              << endl;
-            exit(-1);
-          }
-          state = ss::DECLARED_VARIABLE;
-        break;
         default:
           state = ss::IGNORE;
       }
@@ -261,6 +262,20 @@ CodeNode* DescentParser::parse(const list<Token>::iterator& t, const list<Token>
           state = ss::ARRAY_DECLARATION;
           curSymbol->isArray = true;
         break;
+        case TokenType::COMMA: {
+          //save this one
+          SymbolTable.push_back(curSymbol);
+
+          //make a note of the last type, cause it's the next one too
+          SymbolType temp = curSymbol->type;
+
+          //make the new symbol
+          curSymbol = new Symbol;
+          curSymbol->type = temp;
+          curSymbol->scope = curScope;
+
+          state = ss::VARIABLE_NAME;
+        }break;
         default:
           SymbolTable.push_back(curSymbol);
           state = ss::IGNORE;
@@ -276,7 +291,31 @@ CodeNode* DescentParser::parse(const list<Token>::iterator& t, const list<Token>
           }
           curSymbol->arraySize = stoi(t->getSpelling());
           SymbolTable.push_back(curSymbol);
-          state = ss::IGNORE;
+
+          //now show me a close bracket
+          if (nt == end || nt->getType() != TokenType::RIGHT_BRACKET ) {
+            cerr << "Unexpected token " << nt->getSpelling() << " follows array declaration" << endl;
+            exit(-1);
+          }
+
+          nt = next(nt);
+
+          //ok is this a comma now?
+          if (nt != end && nt->getType() == TokenType::COMMA ) {
+            //save this one
+            SymbolTable.push_back(curSymbol);
+
+            //make a note of the last type, cause it's the next one too
+            SymbolType temp = curSymbol->type;
+
+            //make the new symbol
+            curSymbol = new Symbol;
+            curSymbol->type = temp;
+            curSymbol->scope = curScope;
+
+            state = ss::VARIABLE_NAME;
+          }
+          else state = ss::IGNORE;
         break;
         default:
           state = ss::IGNORE;

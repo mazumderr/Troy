@@ -41,6 +41,7 @@ int main(){
   for (int i = 0; i < 7; ++i) {
     //announce the file we've made it to
     cout << "input file: " << testIns[i] << endl;
+    cout << "key file: " << testOuts[i] << endl;
 
     //open the file containing the correct answers
     ifstream key(testOuts[i]);
@@ -50,8 +51,8 @@ int main(){
     }
 
     //dump all output to a stream for comparison later
-    // stringstream testout;
-    // streambuf* coutBackup = cout.rdbuf(testout.rdbuf());
+    stringstream testout;
+    streambuf* coutBackup = cout.rdbuf(testout.rdbuf());
 
     //get tokens
     {
@@ -63,50 +64,60 @@ int main(){
       list<Symbol*> functions;
 
       for (auto s: symbolTable) {
-        s->print();
+        s->print(true);
         
         //get pointers to all the function symbols so that we can print parameter lists later
         if (s->type == SymbolType::FUNCTION) functions.push_back(s);
       }
 
+      cout << endl;
+
       for (auto f: functions) {
         cout << "   PARAMETER LIST FOR: " << f->name << endl;
 
         for (auto s: *((CallableSymbol*)f)->arguments) {
-          s->print();
+          s->print(false);
         }
       }
     }
 
-    // //restore cout
-    // cout.rdbuf(coutBackup);
+    //restore cout
+    cout.rdbuf(coutBackup);
 
-    // //here's the actual output for this file
+    //here's the actual output for this file
     // cout << testout.str();
 
-    // //verification
-    // {
-    //   char c1,c2;
-    //   unsigned int pos = 0, line = 0;
+    //verification
+    {
+      char c1,c2;
+      unsigned int pos = 0, line = 0;
 
-    //   while (testout.get(c1) || key.get(c2)) {
-    //     if (c1 != c2) {
-    //       cout << "mismatch at " << line << ":" << pos << endl;
-          
-    //       //handle it
+      while (testout.get(c1) && key.get(c2)) {
+        if (tolower(c1) != tolower(c2)) {
+          cout << "mismatch at " << line << ":" << pos << endl;
 
-    //       exit(-1);
-    //     }
+          string badline;
+          testout.seekg(0);
+          for (unsigned int i = 0; i <= line; ++i) {
+            getline(testout,badline);
+          }
 
-    //     ++pos;
-    //     if (c1 == '\n') {
-    //       pos = 0;
-    //       ++line;
-    //     }
-    //   }
+          cout << "\"" << badline << "\"" << endl;
 
-    //   cout << "\tsuccess" << endl;
-    // }
+          cout << testout.str();
+
+          exit(-1);
+        }
+
+        ++pos;
+        if (c1 == '\n') {
+          pos = 0;
+          ++line;
+        }
+      }
+
+      cout << "\tsuccess" << endl;
+    }
   }
 
   return 0;
