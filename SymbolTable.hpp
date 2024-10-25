@@ -9,7 +9,7 @@ using namespace std;
 enum class SymbolType {
   NONE,
   FUNCTION,
-  DATATYPE,
+  PROCEDURE,
   INT,
   CHAR,
   BOOL,
@@ -18,11 +18,16 @@ enum class SymbolType {
 struct Symbol {
   string name = "";
   SymbolType type = SymbolType::NONE;
+  unsigned int scope = 0;
+  bool isArray = false;
+  unsigned int arraySize = 0;
+
+  void print();
 };
 
 struct CallableSymbol: public Symbol {
   SymbolType returnType = SymbolType::NONE;
-  list<Symbol*> arguments;
+  list<Symbol*>* arguments = nullptr;
 };
 
 string getReadableSymbolType(const SymbolType&);

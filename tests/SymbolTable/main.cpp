@@ -50,23 +50,39 @@ int main(){
     }
 
     //dump all output to a stream for comparison later
-    stringstream testout;
-    streambuf* coutBackup = cout.rdbuf(testout.rdbuf());
+    // stringstream testout;
+    // streambuf* coutBackup = cout.rdbuf(testout.rdbuf());
 
     //get tokens
     {
-      CodeNode* t;
       DescentParser d(testIns[i]);
-      t = d.parse();
+      d.parse();
 
-      
+      list<Symbol*> symbolTable = d.getSymbolTable();
+
+      list<Symbol*> functions;
+
+      for (auto s: symbolTable) {
+        s->print();
+        
+        //get pointers to all the function symbols so that we can print parameter lists later
+        if (s->type == SymbolType::FUNCTION) functions.push_back(s);
+      }
+
+      for (auto f: functions) {
+        cout << "   PARAMETER LIST FOR: " << f->name << endl;
+
+        for (auto s: *((CallableSymbol*)f)->arguments) {
+          s->print();
+        }
+      }
     }
 
-    //restore cout
-    cout.rdbuf(coutBackup);
+    // //restore cout
+    // cout.rdbuf(coutBackup);
 
-    //here's the actual output for this file
-    cout << testout.str();
+    // //here's the actual output for this file
+    // cout << testout.str();
 
     // //verification
     // {

@@ -42,6 +42,8 @@ class DescentParser {
 
     CodeNode* parse();
 
+    list<Symbol*> getSymbolTable();
+
   private:
     list<Symbol*> SymbolTable;
     Scanner s;
@@ -75,10 +77,14 @@ class DescentParser {
     fs forState = fs::NONE;
     bool descend = false;
 
-    list<Symbol*> curArgs;
+    list<Symbol*>* curArgs = nullptr;
     Symbol* curSymbol = nullptr;
     void setSymbolReturnType(const Token& t);
     void setSymbolName(const Token& t);
+
+    unsigned int curScope = 0;
+    unsigned int highestScope = 0;
+    unsigned int braceDepth = 0;
 
     map<string, SymbolType> typemap;
 };

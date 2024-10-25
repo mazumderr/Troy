@@ -9,7 +9,7 @@ string getReadableSymbolType(const SymbolType& t) {
   switch(t) {
     case SymbolType::NONE: return "NONE";
     case SymbolType::FUNCTION: return "FUNCTION";
-    case SymbolType::DATATYPE: return "DATATYPE";
+    case SymbolType::PROCEDURE: return "PROCEDURE";
     case SymbolType::INT: return "INT";
     case SymbolType::CHAR: return "CHAR";
     case SymbolType::BOOL: return "BOOL";
@@ -18,6 +18,35 @@ string getReadableSymbolType(const SymbolType& t) {
       cerr << "getPrintableSymbolType got a bad SymbolType" << endl;
       exit(-1);
   }
+}
 
-
+void Symbol::print() {
+  //I am fully aware that this would have been a lot simpler if my symbol structure
+  //more closely reflected the professor's output
+  //but I refuse to compromise on that
+  cout << "      IDENTIFIER_NAME: " << name << endl;
+  cout << "      IDENTIFIER_TYPE: " << (
+    type == SymbolType::FUNCTION || type == SymbolType::PROCEDURE ?
+      getReadableSymbolType(type)
+      :
+      "datatype"
+  ) << endl;
+  cout << "             DATATYPE: " << (
+    type == SymbolType::PROCEDURE ?
+      "NOT APPLICABLE"
+      :
+      type == SymbolType::FUNCTION ?
+        getReadableSymbolType(((CallableSymbol*)this)->returnType)
+        :
+        getReadableSymbolType(type)
+  ) << endl;
+  cout << "    DATATYPE_IS_ARRAY: " << (
+    isArray ?
+      "yes"
+      :
+      "no"
+  ) << endl;
+  cout << "  DATATYPE_ARRAY_SIZE: " << arraySize << endl;
+  cout << "                SCOPE: " << scope << endl;
+  cout << endl;
 }
