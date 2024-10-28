@@ -2,7 +2,7 @@ a.exe: main.o
 	g++ -std=c++20 main.o SourceReader.o StringParser.o Scanner.o SymbolTable.o DescentParser.o -o a.exe
 
 main.o: tests/SymbolTable/main.cpp DescentParser.o
-	g++ -c -std=c++20 tests/SymbolTable/main.cpp
+	g++ -c -std=c++20 tests/SymbolTable/main.cpp -o main.o
 
 SourceReader.o: SourceReader.cpp SourceReader.h StringParser.o
 	g++ -c -std=c++20 SourceReader.cpp -o SourceReader.o
