@@ -36,3 +36,6 @@ assignment3:
 
 TestSymbolTable:
 	make -f tests/SymbolTable/Makefile
+
+assignment4:
+	make -f deliverables/assignment4/Makefile
