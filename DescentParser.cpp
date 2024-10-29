@@ -242,6 +242,15 @@ CodeNode* DescentParser::parse(const list<Token>::iterator& t, const list<Token>
 
     case ss::SEEN_IDENTIFIER:
       switch (t->getType()) {
+        case TokenType::IDENTIFIER:
+          if (wordIsForbidden(lspell)) {
+            cerr << "Syntax error on line " << t->getLine()
+              << ": reserved word \"" << t->getSpelling() << "\" cannot be used for the name of a variable."
+              << endl;
+            exit(-1);
+          }
+          state = ss::DECLARED_VARIABLE;
+        break;
         default:
           state = ss::IGNORE;
       }
@@ -277,7 +286,7 @@ CodeNode* DescentParser::parse(const list<Token>::iterator& t, const list<Token>
       switch (t->getType()) {
         case TokenType::INTEGER:
           if (stoi(lspell) <= 0) {
-            cout << "Syntax error on line " << t->getLine() << ": array declaration size must be a positive integer." << endl;
+            cerr << "Syntax error on line " << t->getLine() << ": array declaration size must be a positive integer." << endl;
             exit(-1);
           }
           curSymbol->arraySize = stoi(t->getSpelling());
@@ -321,8 +330,12 @@ CodeNode* DescentParser::parse(const list<Token>::iterator& t, const list<Token>
     case ss::FUNC_NAME:
       switch(t->getType()) {
         case TokenType::IDENTIFIER:
-          if (checkForbidden(*t)) return nullptr;
-          setSymbolName(*t);
+          if (wordIsForbidden(lspell)) {
+            cerr << "Syntax error on line " << t->getLine()
+              << ": reserved word \"" << t->getSpelling() << "\" cannot be used for the name of a function."
+              << endl;
+            exit(-1);
+          }
           state = ss::FUNC_OPEN;
         break;
         default:
@@ -349,18 +362,11 @@ CodeNode* DescentParser::parse(const list<Token>::iterator& t, const list<Token>
     break;
 
     case ss::FUNC_ARGNAME:
-      if (checkForbidden(*t)) return nullptr;
-      curArgs->back()->name = t->getSpelling();
-
-      //check if this parameter is an array
-      if (nt != end && nt->getType() == TokenType::LEFT_BRACKET) {
-        curArgs->back()->isArray = true;
-
-        //increment nt to skip some tokens:
-        nt = next(nt);  //skip bracket
-        curArgs->back()->arraySize = stoi(nt->getSpelling()); //get the array size
-        nt = next(nt);  //skip array size
-        nt = next(nt);  //skip right bracket
+      if (wordIsForbidden(lspell)) {
+        cerr << "Syntax error on line " << t->getLine()
+          << ": reserved word \"" << t->getSpelling() << "\" cannot be used for the name of a variable."
+          << endl;
+        exit(-1);
       }
       state = ss::FUNC_COMMACLOSE;
     break;

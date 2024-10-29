@@ -9,7 +9,7 @@
  * 
  */
 #include "../../Scanner/Scanner.hpp"
-
+#include "../../PostFixEvaluator.hpp"
 #include <sstream>
 #include <fstream>
 
@@ -54,12 +54,17 @@ int main(){
       Scanner s(testIns[i]);
       list<Token> tokenList = s.getTokens();
 
+      PostFixEvaluator currentEquation;
+
+      for(auto t: tokenList){
+          currentEquation.Eval(t);
+      }
       //at this point you'd probably want to instantiate your shunting yard conversion object and feed it this list of tokens
       //I think that it would be most convenient to just output a list of tokens for the converted postfix expression
 
       //here's how you'd probably want to output the token list for comparison against the test output files
-      for (auto t = tokenList.begin(); t != tokenList.end(); ++t) {
-        cout << t->getSpelling() << " ";
+      for(int i = 0; i < currentEquation.getEquation().size(); i++){
+          cout << currentEquation.getEquation().at(i).getSpelling() << " ";
       }
 
       cout << endl << endl;
