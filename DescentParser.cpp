@@ -118,10 +118,6 @@ DescentParser::DescentParser(const string &fname) {
  */
 void DescentParser::open(const string &fname) {
   s.open(fname);
-
-  typemap["int"] = SymbolType::INT;
-  typemap["char"] = SymbolType::CHAR;
-  typemap["bool"] = SymbolType::BOOL;
 }
 
 /**
@@ -139,10 +135,6 @@ CodeNode* DescentParser::parse() {
   forState = fs::NONE;
 
   return parse(tokenList.begin(), tokenList.end());
-}
-
-list<Symbol *> DescentParser::getSymbolTable(){
-  return SymbolTable;
 }
 
 CodeNode* DescentParser::parse(const list<Token>::iterator& t, const list<Token>::iterator& end) {
@@ -171,40 +163,17 @@ CodeNode* DescentParser::parse(const list<Token>::iterator& t, const list<Token>
 
   const string lspell = getLowercase(t->getSpelling());
 
-  if (t->getType() == TokenType::LEFT_BRACE) {
-    ++braceDepth;
-  }
-  else if (t->getType() == TokenType::RIGHT_BRACE) {
-    if (braceDepth == 0) {
-      cerr << "extra close brace!" << endl;
-      exit(-1);
-    }
-    else {
-      --braceDepth;
-      if (braceDepth == 0) {
-        curScope = 0;
-      }
-    }
-  }
-
   //check for errors
   switch(state) {
     case ss::START:
+      // cout << t->getLine() << " start of statement: " << t->getSpelling() << endl;
       switch (t->getType()) {
         case TokenType::IDENTIFIER:
           if (lspell == "function") {
-            curSymbol = new Symbol();
-            ++highestScope;
-            curSymbol->scope = curScope = highestScope;
-            curSymbol->type = SymbolType::FUNCTION;
             state = ss::FUNC_RETURN_TYPE;
           }
           else if (lspell == "procedure") {
-            curSymbol = new Symbol();
-            ++highestScope;
-            curSymbol->scope = curScope = highestScope;
-            curSymbol->type = SymbolType::PROCEDURE;
-            state = ss::FUNC_NAME;
+            state = ss::IGNORE;
           }
           else if (lspell == "return") {
             state = ss::IGNORE;
@@ -213,31 +182,13 @@ CodeNode* DescentParser::parse(const list<Token>::iterator& t, const list<Token>
             forState = fs::EXPECTING_FIRST_SEMI;
           }
           else {
-            //this might be a variable declaration
-            //if it is, the next token should also be an identifier
-            if (nt != end && nt->getType() == TokenType::IDENTIFIER) {
-              curSymbol = new Symbol;
-              curSymbol->type = typemap[getLowercase(t->getSpelling())];
-              curSymbol->scope = curScope;
-
-              state = ss::VARIABLE_NAME;
-            }
-
-            else state = ss::SEEN_IDENTIFIER;
+            state = ss::SEEN_IDENTIFIER;
           }
         break;
         default:
           //if there's more to this statement, we really don't care
           state = ss::IGNORE;
       }
-    break;
-
-    case ss::VARIABLE_NAME: {
-      if (checkForbidden(*t)) return nullptr;
-      curSymbol->name = t->getSpelling();
-      
-      state = ss::DECLARED_VARIABLE;
-    }
     break;
 
     case ss::SEEN_IDENTIFIER:
@@ -260,24 +211,8 @@ CodeNode* DescentParser::parse(const list<Token>::iterator& t, const list<Token>
       switch (t->getType()) {
         case TokenType::LEFT_BRACKET:
           state = ss::ARRAY_DECLARATION;
-          curSymbol->isArray = true;
         break;
-        case TokenType::COMMA: {
-          //save this one
-          SymbolTable.push_back(curSymbol);
-
-          //make a note of the last type, cause it's the next one too
-          SymbolType temp = curSymbol->type;
-
-          //make the new symbol
-          curSymbol = new Symbol;
-          curSymbol->type = temp;
-          curSymbol->scope = curScope;
-
-          state = ss::VARIABLE_NAME;
-        }break;
         default:
-          SymbolTable.push_back(curSymbol);
           state = ss::IGNORE;
       }
     break;
@@ -289,33 +224,7 @@ CodeNode* DescentParser::parse(const list<Token>::iterator& t, const list<Token>
             cerr << "Syntax error on line " << t->getLine() << ": array declaration size must be a positive integer." << endl;
             exit(-1);
           }
-          curSymbol->arraySize = stoi(t->getSpelling());
-          SymbolTable.push_back(curSymbol);
-
-          //now show me a close bracket
-          if (nt == end || nt->getType() != TokenType::RIGHT_BRACKET ) {
-            cerr << "Unexpected token " << nt->getSpelling() << " follows array declaration" << endl;
-            exit(-1);
-          }
-
-          nt = next(nt);
-
-          //ok is this a comma now?
-          if (nt != end && nt->getType() == TokenType::COMMA ) {
-            //save this one
-            SymbolTable.push_back(curSymbol);
-
-            //make a note of the last type, cause it's the next one too
-            SymbolType temp = curSymbol->type;
-
-            //make the new symbol
-            curSymbol = new Symbol;
-            curSymbol->type = temp;
-            curSymbol->scope = curScope;
-
-            state = ss::VARIABLE_NAME;
-          }
-          else state = ss::IGNORE;
+          state = ss::IGNORE;
         break;
         default:
           state = ss::IGNORE;
@@ -323,7 +232,7 @@ CodeNode* DescentParser::parse(const list<Token>::iterator& t, const list<Token>
     break;
 
     case ss::FUNC_RETURN_TYPE:
-      setSymbolReturnType(*t);
+      //don't actually care about what happens here... yet
       state = ss::FUNC_NAME;        
     break;
 
@@ -344,21 +253,11 @@ CodeNode* DescentParser::parse(const list<Token>::iterator& t, const list<Token>
     break;
 
     case ss::FUNC_OPEN:
-      curArgs = new list<Symbol*>;
       state = ss::FUNC_ARGTYPE;
     break;
 
     case ss::FUNC_ARGTYPE:
-      if (lspell == "void") {
-        SymbolTable.push_back(curSymbol);
-        state = ss::IGNORE;
-      }
-      else {
-        curArgs->push_back(new Symbol);
-        curArgs->back()->type = typemap[getLowercase(t->getSpelling())];
-        curArgs->back()->scope = curScope;
-        state = ss::FUNC_ARGNAME;
-      }
+      state = ss::FUNC_ARGNAME;
     break;
 
     case ss::FUNC_ARGNAME:
@@ -377,16 +276,9 @@ CodeNode* DescentParser::parse(const list<Token>::iterator& t, const list<Token>
           state = ss::FUNC_ARGTYPE;
         break;
         case TokenType::RIGHT_PARENTHESIS:
-          curSymbol->arguments = curArgs;
-
-          SymbolTable.push_back(curSymbol);
-
           state = ss::IGNORE;
         break;
-        default: {
-          cerr << "Unexpected token " << t->getSpelling() << " has terminated function definition";
-          exit(-1);
-        }
+        default: {}
       }
     }
 
@@ -427,14 +319,6 @@ CodeNode* DescentParser::parse(const list<Token>::iterator& t, const list<Token>
   return thisNode;
 }
 
-void DescentParser::setSymbolReturnType(const Token &t) {
-  curSymbol->returnType = typemap[getLowercase(t.getSpelling())];
-}
-
-void DescentParser::setSymbolName(const Token &t) {
-  curSymbol->name = getLowercase(t.getSpelling());
-}
-
 string DescentParser::getLowercase(const string &s) {
   string out;
   
@@ -445,10 +329,7 @@ string DescentParser::getLowercase(const string &s) {
   return out;
 }
 
-bool DescentParser::checkForbidden(const Token& t) {
-  //check for forbidden keyword usage
-  const string lspell = getLowercase(t.getSpelling());
-
+bool DescentParser::wordIsForbidden(const string &s) {
   string forbidden[] = {
     "char",
     "function",
@@ -460,55 +341,9 @@ bool DescentParser::checkForbidden(const Token& t) {
   #define forbiddenCount 6
   
   for (unsigned int i = 0; i < forbiddenCount; ++i) {
-    if (lspell == forbidden[i])  {
-      cout << "Syntax error on line " << t.getLine()
-        << ": reserved word \"" << t.getSpelling() << "\" cannot be used for the name of a variable."
-        << endl;
-      error = true;
+    if (s == forbidden[i]) {
       return true;
     }
   }
-
-  //check for forbidden scoped-ness
-  for (auto s: SymbolTable) {
-
-    if (s->scope == 0) {
-      if (s->name == t.getSpelling()) {
-        cout << "Error on line " << t.getLine() <<
-          ": variable \"" << t.getSpelling() << 
-          "\" is already defined globally";  
-        error = true;
-        return true;
-      }
-    }
-    else if (s->scope == curScope){
-      bool collision = false;
-
-      if (s->name == t.getSpelling()) {
-        collision = true;
-      }
-
-      //check parameter list
-      if (s->arguments != nullptr) {
-        list<Symbol*> paramList = *(s->arguments);
-
-        for (auto p: paramList) {
-          if ((*p).name == t.getSpelling()) {
-            collision = true;
-            break;
-          }
-        }
-      }
-
-      if (collision) {
-        cout << "Error on line " << t.getLine() <<
-          ": variable \"" << t.getSpelling() << 
-          "\" is already defined locally";  
-        error = true;
-        return true;
-      }
-    }
-  }
-
   return false;
 }
