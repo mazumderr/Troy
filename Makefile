@@ -33,3 +33,6 @@ TestExpressionConverter:
 
 assignment3:
 	make -f deliverables/assignment3/Makefile
+
+TestSymbolTable:
+	make -f tests/SymbolTable/Makefile
