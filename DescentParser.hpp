@@ -42,13 +42,15 @@ class DescentParser {
 
     CodeNode* parse();
 
+    bool checkError() const {return error;};
+
     list<Symbol*> getSymbolTable();
 
   private:
     list<Symbol*> SymbolTable;
     Scanner s;
     string getLowercase(const string&);
-    bool wordIsForbidden(const string&);
+    bool checkForbidden(const Token& t);
 
     CodeNode* parse(const list<Token>::iterator&, const list<Token>::iterator&);
 
@@ -86,6 +88,8 @@ class DescentParser {
     unsigned int curScope = 0;
     unsigned int highestScope = 0;
     unsigned int braceDepth = 0;
+
+    bool error = false;
 
     map<string, SymbolType> typemap;
 };

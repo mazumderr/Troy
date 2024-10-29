@@ -237,12 +237,7 @@ CodeNode* DescentParser::parse(const list<Token>::iterator& t, const list<Token>
     break;
 
     case ss::VARIABLE_NAME: {
-      if (wordIsForbidden(lspell)) {
-        cout << "Syntax error on line " << t->getLine()
-          << ": reserved word \"" << t->getSpelling() << "\" cannot be used for the name of a variable."
-          << endl;
-        exit(-1);
-      }
+      if (checkForbidden(*t)) return nullptr;
       curSymbol->name = t->getSpelling();
       
       state = ss::DECLARED_VARIABLE;
@@ -330,12 +325,7 @@ CodeNode* DescentParser::parse(const list<Token>::iterator& t, const list<Token>
     case ss::FUNC_NAME:
       switch(t->getType()) {
         case TokenType::IDENTIFIER:
-          if (wordIsForbidden(lspell)) {
-            cout << "Syntax error on line " << t->getLine()
-              << ": reserved word \"" << t->getSpelling() << "\" cannot be used for the name of a function."
-              << endl;
-            exit(-1);
-          }
+          if (checkForbidden(*t)) return nullptr;
           setSymbolName(*t);
           state = ss::FUNC_OPEN;
         break;
@@ -357,12 +347,7 @@ CodeNode* DescentParser::parse(const list<Token>::iterator& t, const list<Token>
     break;
 
     case ss::FUNC_ARGNAME:
-      if (wordIsForbidden(lspell)) {
-        cout << "Syntax error on line " << t->getLine()
-          << ": reserved word \"" << t->getSpelling() << "\" cannot be used for the name of a variable."
-          << endl;
-        exit(-1);
-      }
+      if (checkForbidden(*t)) return nullptr;
       curArgs->back()->name = t->getSpelling();
 
       //check if this parameter is an array
@@ -452,7 +437,10 @@ string DescentParser::getLowercase(const string &s) {
   return out;
 }
 
-bool DescentParser::wordIsForbidden(const string &s) {
+bool DescentParser::checkForbidden(const Token& t) {
+  //check for forbidden keyword usage
+  const string lspell = getLowercase(t.getSpelling());
+
   string forbidden[] = {
     "char",
     "function",
@@ -464,9 +452,45 @@ bool DescentParser::wordIsForbidden(const string &s) {
   #define forbiddenCount 6
   
   for (unsigned int i = 0; i < forbiddenCount; ++i) {
-    if (s == forbidden[i]) {
+    if (lspell == forbidden[i])  {
+      cout << "Syntax error on line " << t.getLine()
+        << ": reserved word \"" << t.getSpelling() << "\" cannot be used for the name of a variable."
+        << endl;
+      error = true;
       return true;
     }
   }
+
+  //check for forbidden scoped-ness
+  for (auto s: SymbolTable) {
+
+    if (s->scope == 0) {
+      if (s->name == t.getSpelling()) {
+        cout << "Error on line " << t.getLine() <<
+          ": variable \"" << t.getSpelling() << 
+          "\" is already defined globally";  
+        error = true;
+        return true;
+      }
+    }
+    else if (s->scope == curScope){
+      bool collision = false;
+
+      if (s->name == t.getSpelling()) {
+        collision = true;
+      }
+
+      //check parameter list
+
+      if (collision) {
+        cout << "Error on line " << t.getLine() <<
+          ": variable \"" << t.getSpelling() << 
+          "\" is already defined locally";  
+        error = true;
+        return true;
+      }
+    }
+  }
+
   return false;
 }

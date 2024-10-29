@@ -58,25 +58,27 @@ int main(){
     {
       DescentParser d(testIns[i]);
       d.parse();
+      if (!d.checkError()) {
 
-      list<Symbol*> symbolTable = d.getSymbolTable();
+        list<Symbol*> symbolTable = d.getSymbolTable();
 
-      list<Symbol*> functions;
+        list<Symbol*> functions;
 
-      for (auto s: symbolTable) {
-        s->print(true);
-        
-        //get pointers to all the function symbols so that we can print parameter lists later
-        if (s->type == SymbolType::FUNCTION) functions.push_back(s);
-      }
+        for (auto s: symbolTable) {
+          s->print(true);
+          
+          //get pointers to all the function symbols so that we can print parameter lists later
+          if (s->type == SymbolType::FUNCTION) functions.push_back(s);
+        }
 
-      cout << endl;
+        cout << endl;
 
-      for (auto f: functions) {
-        cout << "   PARAMETER LIST FOR: " << f->name << endl;
+        for (auto f: functions) {
+          cout << "   PARAMETER LIST FOR: " << f->name << endl;
 
-        for (auto s: *((CallableSymbol*)f)->arguments) {
-          s->print(false);
+          for (auto s: *((CallableSymbol*)f)->arguments) {
+            s->print(false);
+          }
         }
       }
     }
