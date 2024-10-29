@@ -8,6 +8,7 @@
 #include <map>
 #include <stack>
 #include <cctype>
+#include <vector>
 using namespace std;
 
 class PostFixEvaluator {
