@@ -193,22 +193,18 @@ CodeNode* DescentParser::parse(const list<Token>::iterator& t, const list<Token>
       switch (t->getType()) {
         case TokenType::IDENTIFIER:
           if (lspell == "function") {
-            curSymbol = new CallableSymbol();
+            curSymbol = new Symbol();
             ++highestScope;
             curSymbol->scope = curScope = highestScope;
             curSymbol->type = SymbolType::FUNCTION;
             state = ss::FUNC_RETURN_TYPE;
           }
           else if (lspell == "procedure") {
-            curSymbol = new CallableSymbol();
+            curSymbol = new Symbol();
             ++highestScope;
             curSymbol->scope = curScope = highestScope;
             curSymbol->type = SymbolType::PROCEDURE;
-            //the next symbol is definitely the procedure's name
-            curSymbol->name = nt->getSpelling();
-            SymbolTable.push_back(curSymbol);
-
-            state = ss::IGNORE;
+            state = ss::FUNC_NAME;
           }
           else if (lspell == "return") {
             state = ss::IGNORE;
@@ -340,10 +336,16 @@ CodeNode* DescentParser::parse(const list<Token>::iterator& t, const list<Token>
     break;
 
     case ss::FUNC_ARGTYPE:
-      curArgs->push_back(new Symbol);
-      curArgs->back()->type = typemap[getLowercase(t->getSpelling())];
-      curArgs->back()->scope = curScope;
-      state = ss::FUNC_ARGNAME;
+      if (lspell == "void") {
+        SymbolTable.push_back(curSymbol);
+        state = ss::IGNORE;
+      }
+      else {
+        curArgs->push_back(new Symbol);
+        curArgs->back()->type = typemap[getLowercase(t->getSpelling())];
+        curArgs->back()->scope = curScope;
+        state = ss::FUNC_ARGNAME;
+      }
     break;
 
     case ss::FUNC_ARGNAME:
@@ -369,7 +371,7 @@ CodeNode* DescentParser::parse(const list<Token>::iterator& t, const list<Token>
           state = ss::FUNC_ARGTYPE;
         break;
         case TokenType::RIGHT_PARENTHESIS:
-          ((CallableSymbol*)curSymbol)->arguments = curArgs;
+          curSymbol->arguments = curArgs;
 
           SymbolTable.push_back(curSymbol);
 
@@ -420,7 +422,7 @@ CodeNode* DescentParser::parse(const list<Token>::iterator& t, const list<Token>
 }
 
 void DescentParser::setSymbolReturnType(const Token &t) {
-  ((CallableSymbol*)curSymbol)->returnType = typemap[getLowercase(t.getSpelling())];
+  curSymbol->returnType = typemap[getLowercase(t.getSpelling())];
 }
 
 void DescentParser::setSymbolName(const Token &t) {
@@ -481,6 +483,16 @@ bool DescentParser::checkForbidden(const Token& t) {
       }
 
       //check parameter list
+      if (s->arguments != nullptr) {
+        list<Symbol*> paramList = *(s->arguments);
+
+        for (auto p: paramList) {
+          if ((*p).name == t.getSpelling()) {
+            collision = true;
+            break;
+          }
+        }
+      }
 
       if (collision) {
         cout << "Error on line " << t.getLine() <<

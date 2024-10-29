@@ -76,7 +76,7 @@ int main(){
         for (auto f: functions) {
           cout << "   PARAMETER LIST FOR: " << f->name << endl;
 
-          for (auto s: *((CallableSymbol*)f)->arguments) {
+          for (auto s: *(f->arguments)) {
             s->print(false);
           }
         }

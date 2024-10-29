@@ -40,7 +40,7 @@ void Symbol::print(bool printITypeLine) {
       "NOT APPLICABLE"
       :
       type == SymbolType::FUNCTION ?
-        getReadableSymbolType(((CallableSymbol*)this)->returnType)
+        getReadableSymbolType(this->returnType)
         :
         getReadableSymbolType(type)
   ) << endl;

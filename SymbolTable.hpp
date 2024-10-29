@@ -23,9 +23,7 @@ struct Symbol {
   unsigned int arraySize = 0;
 
   void print(bool);
-};
 
-struct CallableSymbol: public Symbol {
   SymbolType returnType = SymbolType::NONE;
   list<Symbol*>* arguments = nullptr;
 };
