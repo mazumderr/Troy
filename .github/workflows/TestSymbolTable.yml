@@ -1,0 +1,21 @@
+name: Test SymbolTable
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  TestSymbolTable:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: make
+      run: make TestSymbolTable
+    - name: execute tests
+      run: ./a.exe
+    - name: cleanup
+      run: make clean
