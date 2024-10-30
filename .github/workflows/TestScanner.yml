@@ -14,7 +14,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: make
-      run: make -f tests/Scanner/Makefile
+      run: make TestScanner
     - name: execute tests
       run: ./a.exe
     - name: cleanup
