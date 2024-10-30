@@ -38,7 +38,12 @@ void SourceReader::unget(const std::string &str) {
     pos -= str.length();
     ungetBuffer = std::stringstream(curBuff);
 }
-
+/**
+ * @brief strips comments from source code
+ *  returns the source character by character
+ *
+ * @param c character being evaluated from c file
+ */
 bool SourceReader::processSource(char &c) {
 
     // Make sure file exists
