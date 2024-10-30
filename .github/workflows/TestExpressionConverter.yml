@@ -1,4 +1,4 @@
-name: Test Scanner
+name: Test ExpressionConverter
 
 on:
   push:
@@ -7,14 +7,14 @@ on:
     branches: [ "main" ]
 
 jobs:
-  TestScanner:
+  TestExpressionConverter:
 
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
     - name: make
-      run: make TestScanner
+      run: make TestExpressionConverter
     - name: execute tests
       run: ./a.exe
     - name: cleanup

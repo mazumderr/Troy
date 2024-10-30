@@ -1,4 +1,4 @@
-name: Test Scanner
+name: Test SymbolTable
 
 on:
   push:
@@ -7,14 +7,14 @@ on:
     branches: [ "main" ]
 
 jobs:
-  TestScanner:
+  TestSymbolTable:
 
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
     - name: make
-      run: make TestScanner
+      run: make TestSymbolTable
     - name: execute tests
       run: ./a.exe
     - name: cleanup

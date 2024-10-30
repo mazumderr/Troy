@@ -1,4 +1,4 @@
-name: C/C++ CI
+name: Test SourceReader
 
 on:
   push:
@@ -14,7 +14,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: make SourceReader
-      run: make -f tests/SourceReader/Makefile
+      run: make TestSourceReader
     - name: execute tests for sourcereader
       run: ./a.exe
     - name: more cleanup
