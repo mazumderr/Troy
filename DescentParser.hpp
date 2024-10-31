@@ -11,7 +11,7 @@
 #ifndef DESCENTPARSER_HPP
 #define DESCENTPARSER_HPP
 
-#include "Scanner/Scanner.hpp"
+#include "Scanner.hpp"
 #include "SymbolTable.hpp"
 #include <map>
 
