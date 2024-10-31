@@ -6,10 +6,19 @@
 
 StringParser::StringParser() {}
 
+/**
+ * @brief handles string logic for SourceReader
+ *  returns true while in string, else returns false
+ *  feeds SourceReader strings, character by character
+ *
+ *  @pre strings can be single or double quoted
+ *
+ * @param c character being evaluated from c file
+ */
 bool StringParser::parse(char &c) {
     switch(c) {
+        // single quote string
         case '\'':
-            // code block
             if (mode == modes::nonstring) {
                 mode = modes::string_single;
                 return true;
@@ -25,9 +34,8 @@ bool StringParser::parse(char &c) {
                 mode = prev_mode;
                 return true;
             }
-
+        // double quote string
         case '\"':
-            // code block
             if (mode == modes::nonstring) {
                 mode = modes::string_double;
                 return true;
@@ -43,18 +51,17 @@ bool StringParser::parse(char &c) {
                 mode = prev_mode;
                 return true;
             }
-
+        // escape character
         case '\\':
-            // code block
             prev_mode = mode;
             mode = modes::escape;
             return true;
 
         default:
-            if (mode == modes::nonstring)
+            if (mode == modes::nonstring)   // characters not in a string
                 return false;
-            if (mode == modes::escape)
+            if (mode == modes::escape)      // going back into string mode once escape character finishes
                 mode = prev_mode;
-            return true;
     }
+    return true;
 }
