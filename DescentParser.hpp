@@ -13,6 +13,7 @@
 
 #include "Scanner.hpp"
 #include "SymbolTable.hpp"
+#include "Tools.hpp"
 #include <map>
 
 class CodeNode {
@@ -49,7 +50,6 @@ class DescentParser {
   private:
     list<Symbol*> SymbolTable;
     Scanner s;
-    string getLowercase(const string&);
     bool checkForbidden(const Token& t);
 
     CodeNode* parse(const list<Token>::iterator&, const list<Token>::iterator&);
