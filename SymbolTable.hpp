@@ -41,6 +41,9 @@ class SymbolTable {
     list<Symbol*> symbols;
     list<SymbolTable> subScopes;
     SymbolTable* parentTable = nullptr;
+
+    void print(const unsigned int curScope);
+    void print(const Symbol &s, const unsigned int curScope);
 };
 
 #endif

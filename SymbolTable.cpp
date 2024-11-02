@@ -1,4 +1,5 @@
 #include "SymbolTable.hpp"
+#include "Tools.hpp"
 
 #include <iostream>
 
@@ -118,5 +119,29 @@ string SymbolTable::addSymbol(Symbol* s) {
 }
 
 void SymbolTable::print(){
-  
+  int curScope = 0;
+  int highestScope = 0;
+  for (auto s: symbols) {
+    if (s->type == SymbolType::PROCEDURE || s->type == SymbolType::FUNCTION) {
+      ++highestScope;
+      curScope = highestScope;
+    }
+
+    print(*s, curScope);
+  }
+}
+
+void SymbolTable::print(const Symbol &s, const unsigned int curScope) {
+  cout << "      IDENTIFIER_NAME: " << s.name << endl
+  << "      IDENTIFIER_TYPE: " << 
+  getLowercase(getReadableSymbolType(s.type)) << endl
+  << "             DATATYPE: " << 
+    (s.type == SymbolType::FUNCTION ? 
+      getLowercase(getReadableSymbolType(s.returnType))
+    :
+      (s.type == SymbolType::PROCEDURE ? "NOT APPLICABLE" : getLowercase(getReadableSymbolType(s.type))))
+  << endl
+  << "    DATATYPE_IS_ARRAY: " << (s.isArray ? "yes" : "no") << endl
+  << "  DATATYPE_ARRAY_SIZE: " << s.arraySize << endl
+  << "                SCOPE: " << curScope << endl << endl;
 }
