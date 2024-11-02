@@ -15,19 +15,32 @@ enum class SymbolType {
   BOOL,
 };
 
+class SymbolTable;
+
 struct Symbol {
   string name = "";
   SymbolType type = SymbolType::NONE;
-  unsigned int scope = 0;
   bool isArray = false;
   unsigned int arraySize = 0;
 
-  void print(bool);
-
   SymbolType returnType = SymbolType::NONE;
-  list<Symbol*>* arguments = nullptr;
+  SymbolTable* childTable;
 };
 
 string getReadableSymbolType(const SymbolType&);
+
+class SymbolTable {
+  public:
+    void print();
+    SymbolTable* creatSubScope();
+    SymbolTable* getParentTable();
+    [[nodiscard]] string addSymbol(Symbol*);
+    [[nodiscard]] string addSymbolAndDescend(Symbol*, SymbolTable*&);
+    
+  private:
+    list<Symbol*> symbols;
+    list<SymbolTable> subScopes;
+    SymbolTable* parentTable = nullptr;
+};
 
 #endif

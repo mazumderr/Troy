@@ -16,6 +16,17 @@
 #include "Tools.hpp"
 #include <map>
 
+
+  // types of abstract nodes
+  // NONE,
+  // DECLARATION,
+  // BEGIN_BLOCK,
+  // END_BLOCK,
+  // ASSIGNMENT,
+  // IF,
+  // RETURN,
+  // PRINTF,
+
 class CodeNode {
   public:
     CodeNode(const Token& t);
@@ -37,61 +48,14 @@ class CodeNode {
 
 class DescentParser {
   public:
-    DescentParser();
-    DescentParser(const string&);
-    void open(const string&);
-
-    CodeNode* parse();
-
-    bool checkError() const {return error;};
-
-    list<Symbol*> getSymbolTable();
+    bool parse(const string&, CodeNode*&, SymbolTable*&);
 
   private:
-    list<Symbol*> SymbolTable;
-    Scanner s;
-    bool checkForbidden(const Token& t);
-
-    CodeNode* parse(const list<Token>::iterator&, const list<Token>::iterator&);
-
-    enum class ss {
-      START,
-      SEEN_IDENTIFIER,
-      VARIABLE_NAME,
-      DECLARED_VARIABLE,
-      ARRAY_DECLARATION,
-      FUNC_RETURN_TYPE,
-      FUNC_NAME,
-      FUNC_OPEN,
-      FUNC_ARGTYPE,
-      FUNC_ARGNAME,
-      FUNC_COMMACLOSE,
-      PROC_DEF,
-      IGNORE,
+    map<string, SymbolType> typemap = {
+      {"int", SymbolType::INT},
+      {"char", SymbolType::CHAR},
+      {"bool", SymbolType::BOOL},
     };
-
-    enum class fs {
-      NONE,
-      EXPECTING_FIRST_SEMI,
-      EXPECTING_SECOND_SEMI,
-    };
-
-    ss state = ss::START;
-    fs forState = fs::NONE;
-    bool descend = false;
-
-    list<Symbol*>* curArgs = nullptr;
-    Symbol* curSymbol = nullptr;
-    void setSymbolReturnType(const Token& t);
-    void setSymbolName(const Token& t);
-
-    unsigned int curScope = 0;
-    unsigned int highestScope = 0;
-    unsigned int braceDepth = 0;
-
-    bool error = false;
-
-    map<string, SymbolType> typemap;
 };
 
 #endif

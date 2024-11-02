@@ -19,18 +19,14 @@ CodeNode::CodeNode(const Token &t) {
   setToken(new Token(t));
 }
 
-
 /**
  * @brief Destroy the Code Node:: Code Node object
  * 
  */
 CodeNode::~CodeNode() {
-  if (child)
-    delete child;
-  if (sibling)
-    delete sibling;
-  if (token)
-    delete token;
+  delete child;
+  delete sibling;
+  delete token;
 }
 
 /**
@@ -94,405 +90,446 @@ void CodeNode::setSibling(CodeNode *s) {
   sibling = s;
 }
 
+bool DescentParser::parse(const string& fname, CodeNode*& root, SymbolTable*& table) {
+  
+  list<Token> tokenList;
+  {
+    Scanner s(fname);
+    tokenList = s.getTokens();
+  }
 
-/**
- * @brief Construct a new Descent Parser:: Descent Parser object. YOU'D BETTER CALL OPEN NEXT
- * 
- */
-DescentParser::DescentParser() {
-}
+  if (tokenList.empty())  return false;
 
-/**
- * @brief Construct a new Descent Parser:: Descent Parser object the safe way
- * 
- * @param fname filename to open for the underlying scanner object
- */
-DescentParser::DescentParser(const string &fname) {
-  open(fname);
-}
+  root = nullptr;
+  CodeNode* tail = nullptr;
+  
+  table = new SymbolTable();
+  SymbolTable* curTable = table;
 
-/**
- * @brief Open a filename with the underlying scanner object
- * 
- * @param fname 
- */
-void DescentParser::open(const string &fname) {
-  s.open(fname);
+  Symbol* curSymbol = nullptr;
 
-  typemap["int"] = SymbolType::INT;
-  typemap["char"] = SymbolType::CHAR;
-  typemap["bool"] = SymbolType::BOOL;
-}
+  enum class ss { //states for handling tokens
+    START,
+    SEEN_IDENTIFIER,
+    VARIABLE_NAME,
+    DECLARED_VARIABLE,
+    ARRAY_DECLARATION,
+    FUNC_RETURN_TYPE,
+    FUNC_NAME,
+    FUNC_OPEN,
+    FUNC_ARGTYPE,
+    FUNC_ARGNAME,
+    FUNC_COMMACLOSE,
+    PROC_DEF,
+    IGNORE,
+  };
 
-/**
- * @brief where the magic happens. Creates a parse tree and error tests to be compliant with Assignment 3
- * 
- * @return CodeNode* the root of the parse tree
- */
-CodeNode* DescentParser::parse() {
-  list<Token> tokenList = s.getTokens();
+  enum class fs { //states for the for-loop handling state machine
+    NONE,
+    EXPECTING_FIRST_SEMI,
+    EXPECTING_SECOND_SEMI,
+  };
+  
+  ss state = ss::START;
+  fs forState = fs::NONE;
 
-  if (tokenList.empty())  return nullptr;
+  for (auto t = tokenList.begin(); t != tokenList.end(); ++t) {
+    auto nt = next(t);
 
-  descend = false;
-  state = ss::START;
-  forState = fs::NONE;
+    CodeNode* thisNode = new CodeNode(*t);
 
-  return parse(tokenList.begin(), tokenList.end());
-}
+    bool descend;
 
-list<Symbol *> DescentParser::getSymbolTable(){
-  return SymbolTable;
-}
-
-CodeNode* DescentParser::parse(const list<Token>::iterator& t, const list<Token>::iterator& end) {
-  if (t == end) return nullptr;
-
-  auto nt = next(t,1);
-
-  CodeNode* thisNode = new CodeNode(*t);
-
-  //figure out next branch
-  if ((t->getType() == TokenType::SEMICOLON) ||
-      (t->getType() == TokenType::LEFT_BRACE) ||
-      (t->getType() == TokenType::RIGHT_BRACE) ||
-        ((nt != end) &&
-          (
-            (nt->getType() == TokenType::LEFT_BRACE) ||
-            (nt->getType() == TokenType::RIGHT_BRACE)
+    //figure out which direction we're going next
+    if ((t->getType() == TokenType::SEMICOLON) ||
+        (t->getType() == TokenType::LEFT_BRACE) ||
+        (t->getType() == TokenType::RIGHT_BRACE) ||
+          ((nt != tokenList.end()) &&
+            (
+              (nt->getType() == TokenType::LEFT_BRACE) ||
+              (nt->getType() == TokenType::RIGHT_BRACE)
+            )
           )
-        )
-  ) { //child
-    descend = true;
-  }
-  else {
-    descend = false;
-  }
-
-  const string lspell = getLowercase(t->getSpelling());
-
-  if (t->getType() == TokenType::LEFT_BRACE) {
-    ++braceDepth;
-  }
-  else if (t->getType() == TokenType::RIGHT_BRACE) {
-    if (braceDepth == 0) {
-      cerr << "extra close brace!" << endl;
-      exit(-1);
+    ) { //child
+      descend = true;
     }
     else {
-      --braceDepth;
-      if (braceDepth == 0) {
-        curScope = 0;
-      }
+      descend = false;
     }
-  }
 
-  //check for errors
-  switch(state) {
-    case ss::START:
-      switch (t->getType()) {
-        case TokenType::IDENTIFIER:
-          if (lspell == "function") {
-            curSymbol = new Symbol();
-            ++highestScope;
-            curSymbol->scope = curScope = highestScope;
-            curSymbol->type = SymbolType::FUNCTION;
-            state = ss::FUNC_RETURN_TYPE;
-          }
-          else if (lspell == "procedure") {
-            curSymbol = new Symbol();
-            ++highestScope;
-            curSymbol->scope = curScope = highestScope;
-            curSymbol->type = SymbolType::PROCEDURE;
-            state = ss::FUNC_NAME;
-          }
-          else if (lspell == "return") {
-            state = ss::IGNORE;
-          }
-          else if (lspell == "for") {
-            forState = fs::EXPECTING_FIRST_SEMI;
-          }
-          else {
-            //this might be a variable declaration
-            //if it is, the next token should also be an identifier
-            if (nt != end && nt->getType() == TokenType::IDENTIFIER) {
-              curSymbol = new Symbol;
-              curSymbol->type = typemap[getLowercase(t->getSpelling())];
-              curSymbol->scope = curScope;
+    //get lowercase spelling for token, we'll need it a lot
+    const string lspell = getLowercase(t->getSpelling());
 
-              state = ss::VARIABLE_NAME;
+    //handle descents and ascents
+    if (t->getType() == TokenType::LEFT_BRACE) {
+      curTable = curTable->creatSubScope();
+    }
+    else if (t->getType() == TokenType::RIGHT_BRACE) {
+      curTable = curTable->getParentTable();
+    }
+
+
+    //take action for this token
+    switch (state) {
+      case ss::START:
+        switch (t->getType()) {
+          case TokenType::IDENTIFIER:
+            if (lspell == "function") {
+              curSymbol = new Symbol();
+              curSymbol->type = SymbolType::FUNCTION;
+              state = ss::FUNC_RETURN_TYPE;
             }
+            else if (lspell == "procedure") {
+              curSymbol = new Symbol();
+              curSymbol->type = SymbolType::PROCEDURE;
+              state = ss::FUNC_NAME;
+            }
+            else if (lspell == "return") {
+              state = ss::IGNORE;
+            }
+            else if (lspell == "for") {
+              forState = fs::EXPECTING_FIRST_SEMI;
+            }
+            else {
+              //this might be a variable declaration
+              //if it is, the next token should also be an identifier
+              //look ahead
+              if (nt != tokenList.end() && nt->getType() == TokenType::IDENTIFIER) {
+                curSymbol = new Symbol;
+                curSymbol->type = typemap[getLowercase(t->getSpelling())];
 
-            else state = ss::SEEN_IDENTIFIER;
-          }
-        break;
-        default:
-          //if there's more to this statement, we really don't care
-          state = ss::IGNORE;
+                state = ss::VARIABLE_NAME;
+              }
+
+              else state = ss::SEEN_IDENTIFIER;
+            }
+          break;
+          default:
+            //if there's more to this statement, we really don't care
+            state = ss::IGNORE;
+        }
+      break;
+
+      case ss::VARIABLE_NAME: {
+        curSymbol->name = t->getSpelling();
+        
+        state = ss::DECLARED_VARIABLE;
       }
-    break;
+      break;
 
-    case ss::VARIABLE_NAME: {
-      if (checkForbidden(*t)) return nullptr;
-      curSymbol->name = t->getSpelling();
-      
-      state = ss::DECLARED_VARIABLE;
-    }
-    break;
+      case ss::SEEN_IDENTIFIER:
+        switch (t->getType()) {
+          default:
+            state = ss::IGNORE;
+        }
+      break;
 
-    case ss::SEEN_IDENTIFIER:
-      switch (t->getType()) {
-        default:
-          state = ss::IGNORE;
-      }
-    break;
-
-    case ss::DECLARED_VARIABLE:
-      switch (t->getType()) {
-        case TokenType::LEFT_BRACKET:
-          state = ss::ARRAY_DECLARATION;
-          curSymbol->isArray = true;
-        break;
-        case TokenType::COMMA: {
-          //save this one
-          SymbolTable.push_back(curSymbol);
-
-          //make a note of the last type, cause it's the next one too
-          SymbolType temp = curSymbol->type;
-
-          //make the new symbol
-          curSymbol = new Symbol;
-          curSymbol->type = temp;
-          curSymbol->scope = curScope;
-
-          state = ss::VARIABLE_NAME;
-        }break;
-        default:
-          SymbolTable.push_back(curSymbol);
-          state = ss::IGNORE;
-      }
-    break;
-
-    case ss::ARRAY_DECLARATION:
-      switch (t->getType()) {
-        case TokenType::INTEGER:
-          if (stoi(lspell) <= 0) {
-            cout << "Syntax error on line " << t->getLine() << ": array declaration size must be a positive integer." << endl;
-            exit(-1);
-          }
-          curSymbol->arraySize = stoi(t->getSpelling());
-          SymbolTable.push_back(curSymbol);
-
-          //now show me a close bracket
-          if (nt == end || nt->getType() != TokenType::RIGHT_BRACKET ) {
-            cerr << "Unexpected token " << nt->getSpelling() << " follows array declaration" << endl;
-            exit(-1);
-          }
-
-          nt = next(nt);
-
-          //ok is this a comma now?
-          if (nt != end && nt->getType() == TokenType::COMMA ) {
-            //save this one
-            SymbolTable.push_back(curSymbol);
-
+      case ss::DECLARED_VARIABLE:
+        switch (t->getType()) {
+          case TokenType::LEFT_BRACKET:
+            state = ss::ARRAY_DECLARATION;
+            curSymbol->isArray = true;
+          break;
+          case TokenType::COMMA: {
             //make a note of the last type, cause it's the next one too
             SymbolType temp = curSymbol->type;
+            //save this one
+            string err = curTable->addSymbol(curSymbol);
+            if (!err.empty()) {
+              delete root;
+              delete table;
+              root = nullptr;
+              table = nullptr;
+              cout << "Error on line " << t->getLine() << ": " << err << endl;
+              return false;
+            };
 
-            //make the new symbol
+            //make the new symbol for what comes after this comma
             curSymbol = new Symbol;
             curSymbol->type = temp;
-            curSymbol->scope = curScope;
 
             state = ss::VARIABLE_NAME;
+          }break;
+          default:
+            string err = curTable->addSymbol(curSymbol);
+            if (!err.empty()) {
+              delete root;
+              delete table;
+              root = nullptr;
+              table = nullptr;
+              cout << "Error on line " << t->getLine() << ": " << err << endl;
+              return false;
+            };
+            state = ss::IGNORE;
+        }
+      break;
+
+      case ss::ARRAY_DECLARATION:
+        switch (t->getType()) {
+          case TokenType::INTEGER: {
+            if (stoi(lspell) <= 0) {
+              cout << "Syntax error on line " << t->getLine() << ": array declaration size must be a positive integer." << endl;
+              exit(-1);
+            }
+
+            curSymbol->arraySize = stoi(t->getSpelling());
+            string err = curTable->addSymbol(curSymbol);
+            if (!err.empty()) {
+              delete root;
+              delete table;
+              root = nullptr;
+              table = nullptr;
+              cout << "Error on line " << t->getLine() << ": " << err << endl;
+              return false;
+            };
+
+            //now show me a close bracket
+            if (nt == tokenList.end() || nt->getType() != TokenType::RIGHT_BRACKET ) {
+              cerr << "Unexpected token " << nt->getSpelling() << " follows array declaration" << endl;
+              exit(-1);
+            }
+
+            nt = next(nt);
+
+            //ok is this a comma now?
+            if (nt != tokenList.end() && nt->getType() == TokenType::COMMA ) {
+              
+              //make a note of this symbol, cause the next one is of the same type
+              SymbolType temp = curSymbol->type;
+              
+              //save this one
+              string err = curTable->addSymbol(curSymbol);
+              if (!err.empty()) {
+                delete root;
+                delete table;
+                root = nullptr;
+                table = nullptr;
+                cout << "Error on line " << t->getLine() << ": " << err << endl;
+                return false;
+              };
+
+              //make the new symbol for what comes after this comma
+              curSymbol = new Symbol;
+              curSymbol->type =curSymbol->type;
+
+              state = ss::VARIABLE_NAME;
+
+              ++t;
+            }
+            else state = ss::IGNORE;
+          }break;
+          default:
+            state = ss::IGNORE;
+        }
+      break;
+
+      case ss::FUNC_RETURN_TYPE:
+        curSymbol->returnType = typemap[getLowercase(t->getSpelling())];
+        state = ss::FUNC_NAME;
+      break;
+
+      case ss::FUNC_NAME:
+        switch(t->getType()) {
+          case TokenType::IDENTIFIER:
+            curSymbol->name = t->getSpelling();
+            state = ss::FUNC_OPEN;
+          break;
+          default:
+            state = ss::IGNORE;
+        }
+      break;
+
+      case ss::FUNC_OPEN:{
+        string err = curTable->addSymbolAndDescend(curSymbol, curTable);
+        if (!err.empty()) {
+          delete root;
+          delete table;
+          root = nullptr;
+          table = nullptr;
+          cout << "Error on line " << t->getLine() << ": " << err << endl;
+          return false;
+        }
+        state = ss::FUNC_ARGTYPE;
+      }break;
+
+      case ss::FUNC_ARGTYPE:
+        if (lspell == "void") {
+          //eat the left brace
+          while (++t != tokenList.end() && t->getType() != TokenType::LEFT_BRACE);
+          state = ss::START;
+        }
+        else {
+          curSymbol = new Symbol;
+          curSymbol->type = typemap[getLowercase(t->getSpelling())];
+          state = ss::FUNC_ARGNAME;
+        }
+      break;
+
+      case ss::FUNC_ARGNAME:{
+        curSymbol->name = t->getSpelling();
+
+        //check if this parameter is an array
+        if (nt != tokenList.end() && nt->getType() == TokenType::LEFT_BRACKET) {
+          curSymbol->isArray = true;
+
+          //increment nt to skip some tokens:
+          nt = next(nt);  //skip bracket
+          curSymbol->arraySize = stoi(nt->getSpelling());
+          ++t;  //skip array size and right bracket
+          ++t;
+          ++t;
+        }
+
+        //record this argument
+        string err = curTable->addSymbol(curSymbol);
+        if (!err.empty()) {
+          delete root;
+          delete table;
+          root = nullptr;
+          table = nullptr;
+          cout << "Error on line " << t->getLine() << ": " << err << endl;
+          return false;
+        };
+
+        state = ss::FUNC_COMMACLOSE;
+    }break;
+
+      case ss::FUNC_COMMACLOSE: {
+        switch (t->getType()) {
+          case TokenType::COMMA:
+            state = ss::FUNC_ARGTYPE;
+          break;
+          case TokenType::RIGHT_PARENTHESIS:
+            //eat the left brace
+            while (++t != tokenList.end() && t->getType() != TokenType::LEFT_BRACE);
+            state = ss::START;
+          break;
+          default: {
+            cerr << "Unexpected token " << t->getSpelling() << " has terminated function definition";
+            exit(-1);
           }
-          else state = ss::IGNORE;
-        break;
-        default:
-          state = ss::IGNORE;
-      }
-    break;
+        }
+      }break;
 
-    case ss::FUNC_RETURN_TYPE:
-      setSymbolReturnType(*t);
-      state = ss::FUNC_NAME;        
-    break;
+      case ss::IGNORE:
+      default:{}
+    }
 
-    case ss::FUNC_NAME:
-      switch(t->getType()) {
-        case TokenType::IDENTIFIER:
-          if (checkForbidden(*t)) return nullptr;
-          setSymbolName(*t);
-          state = ss::FUNC_OPEN;
-        break;
-        default:
-          state = ss::IGNORE;
-      }
-    break;
+    //reset for the start of each statement
+    if (descend) state = ss::START;
+    
+    //special handling for for statements
+    switch(forState) {
+      case fs::EXPECTING_FIRST_SEMI: {
+        descend = false;
 
-    case ss::FUNC_OPEN:
-      curArgs = new list<Symbol*>;
-      state = ss::FUNC_ARGTYPE;
-    break;
+        if (t->getType() == TokenType::SEMICOLON)
+          forState = fs::EXPECTING_SECOND_SEMI;
+      };
+      break;
 
-    case ss::FUNC_ARGTYPE:
-      if (lspell == "void") {
-        SymbolTable.push_back(curSymbol);
-        state = ss::IGNORE;
+      case fs::EXPECTING_SECOND_SEMI:
+        descend = false;
+
+        if (t->getType() == TokenType::SEMICOLON)
+          forState = fs::NONE;
+      break;
+      
+      default: {};
+    }
+
+    if (root == nullptr) {
+      root = thisNode;
+      tail = root;
+    }
+    else if (descend) {
+      if (tail == nullptr) {
+        root->setChild(thisNode);
       }
       else {
-        curArgs->push_back(new Symbol);
-        curArgs->back()->type = typemap[getLowercase(t->getSpelling())];
-        curArgs->back()->scope = curScope;
-        state = ss::FUNC_ARGNAME;
+        tail->setChild(thisNode);
       }
-    break;
-
-    case ss::FUNC_ARGNAME:
-      if (checkForbidden(*t)) return nullptr;
-      curArgs->back()->name = t->getSpelling();
-
-      //check if this parameter is an array
-      if (nt != end && nt->getType() == TokenType::LEFT_BRACKET) {
-        curArgs->back()->isArray = true;
-
-        //increment nt to skip some tokens:
-        nt = next(nt);  //skip bracket
-        curArgs->back()->arraySize = stoi(nt->getSpelling()); //get the array size
-        nt = next(nt);  //skip array size
-        nt = next(nt);  //skip right bracket
+    }
+    else {
+      if (tail == nullptr) {
+        root->setChild(thisNode);
       }
-      state = ss::FUNC_COMMACLOSE;
-    break;
-
-    case ss::FUNC_COMMACLOSE: {
-      switch (t->getType()) {
-        case TokenType::COMMA:
-          state = ss::FUNC_ARGTYPE;
-        break;
-        case TokenType::RIGHT_PARENTHESIS:
-          curSymbol->arguments = curArgs;
-
-          SymbolTable.push_back(curSymbol);
-
-          state = ss::IGNORE;
-        break;
-        default: {
-          cerr << "Unexpected token " << t->getSpelling() << " has terminated function definition";
-          exit(-1);
-        }
+      else {
+        tail->setSibling(thisNode);
       }
     }
 
-    case ss::IGNORE:
-    default:{}
+    tail = thisNode;
   }
 
-  //reset for the start of each statement
-  if (descend) state = ss::START;
+  return true;
+}
+
+
+// bool DescentParser::checkForbidden(const Token& t) {
+//   //check for forbidden keyword usage
+//   const string lspell = getLowercase(t.getSpelling());
+
+//   string forbidden[] = {
+//     "char",
+//     "function",
+//     "procedure",
+//     "void",
+//     "printf",
+//     "int",
+//   };
+//   #define forbiddenCount 6
   
-  //special handling for for statements
-  switch(forState) {
-    case fs::EXPECTING_FIRST_SEMI: {
-      descend = false;
+//   for (unsigned int i = 0; i < forbiddenCount; ++i) {
+//     if (lspell == forbidden[i])  {
+//       cout << "Syntax error on line " << t.getLine()
+//         << ": reserved word \"" << t.getSpelling() << "\" cannot be used for the name of a variable."
+//         << endl;
+//       error = true;
+//       return true;
+//     }
+//   }
 
-      if (t->getType() == TokenType::SEMICOLON)
-        forState = fs::EXPECTING_SECOND_SEMI;
-    };
-    break;
+//   //check for forbidden scoped-ness
+//   for (auto s: SymbolTable) {
 
-    case fs::EXPECTING_SECOND_SEMI:
-      descend = false;
+//     if (s->scope == 0) {
+//       if (s->name == t.getSpelling()) {
+//         cout << "Error on line " << t.getLine() <<
+//           ": variable \"" << t.getSpelling() << 
+//           "\" is already defined globally";  
+//         error = true;
+//         return true;
+//       }
+//     }
+//     else if (s->scope == curScope){
+//       bool collision = false;
 
-      if (t->getType() == TokenType::SEMICOLON)
-        forState = fs::NONE;
-    break;
-    
-    default: {};
-  }
+//       if (s->name == t.getSpelling()) {
+//         collision = true;
+//       }
 
-  if (descend) {
-    thisNode->setChild(parse(nt, end));
-  }
-  else {
-    thisNode->setSibling(parse(nt, end));
-  }
+//       //check parameter list
+//       if (s->arguments != nullptr) {
+//         list<Symbol*> paramList = *(s->arguments);
 
-  return thisNode;
-}
+//         for (auto p: paramList) {
+//           if ((*p).name == t.getSpelling()) {
+//             collision = true;
+//             break;
+//           }
+//         }
+//       }
 
-void DescentParser::setSymbolReturnType(const Token &t) {
-  curSymbol->returnType = typemap[getLowercase(t.getSpelling())];
-}
+//       if (collision) {
+//         cout << "Error on line " << t.getLine() <<
+//           ": variable \"" << t.getSpelling() << 
+//           "\" is already defined locally";  
+//         error = true;
+//         return true;
+//       }
+//     }
+//   }
 
-void DescentParser::setSymbolName(const Token &t) {
-  curSymbol->name = getLowercase(t.getSpelling());
-}
-
-bool DescentParser::checkForbidden(const Token& t) {
-  //check for forbidden keyword usage
-  const string lspell = getLowercase(t.getSpelling());
-
-  string forbidden[] = {
-    "char",
-    "function",
-    "procedure",
-    "void",
-    "printf",
-    "int",
-  };
-  #define forbiddenCount 6
-  
-  for (unsigned int i = 0; i < forbiddenCount; ++i) {
-    if (lspell == forbidden[i])  {
-      cout << "Syntax error on line " << t.getLine()
-        << ": reserved word \"" << t.getSpelling() << "\" cannot be used for the name of a variable."
-        << endl;
-      error = true;
-      return true;
-    }
-  }
-
-  //check for forbidden scoped-ness
-  for (auto s: SymbolTable) {
-
-    if (s->scope == 0) {
-      if (s->name == t.getSpelling()) {
-        cout << "Error on line " << t.getLine() <<
-          ": variable \"" << t.getSpelling() << 
-          "\" is already defined globally";  
-        error = true;
-        return true;
-      }
-    }
-    else if (s->scope == curScope){
-      bool collision = false;
-
-      if (s->name == t.getSpelling()) {
-        collision = true;
-      }
-
-      //check parameter list
-      if (s->arguments != nullptr) {
-        list<Symbol*> paramList = *(s->arguments);
-
-        for (auto p: paramList) {
-          if ((*p).name == t.getSpelling()) {
-            collision = true;
-            break;
-          }
-        }
-      }
-
-      if (collision) {
-        cout << "Error on line " << t.getLine() <<
-          ": variable \"" << t.getSpelling() << 
-          "\" is already defined locally";  
-        error = true;
-        return true;
-      }
-    }
-  }
-
-  return false;
-}
+//   return false;
+// }
