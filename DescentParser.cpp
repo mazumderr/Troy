@@ -90,7 +90,7 @@ void CodeNode::setSibling(CodeNode *s) {
   sibling = s;
 }
 
-bool DescentParser::parse(const string& fname, CodeNode*& root, SymbolTable*& table) {
+bool DescentParser::parse(const string& fname, CodeNode*& root, CodeScope*& table) {
   
   list<Token> tokenList;
   {
@@ -103,8 +103,8 @@ bool DescentParser::parse(const string& fname, CodeNode*& root, SymbolTable*& ta
   root = nullptr;
   CodeNode* tail = nullptr;
   
-  table = new SymbolTable();
-  SymbolTable* curTable = table;
+  table = new CodeScope();
+  CodeScope* curTable = table;
 
   Symbol* curSymbol = nullptr;
 
@@ -165,9 +165,8 @@ bool DescentParser::parse(const string& fname, CodeNode*& root, SymbolTable*& ta
       curTable = curTable->creatSubScope();
     }
     else if (t->getType() == TokenType::RIGHT_BRACE) {
-      curTable = curTable->getParentTable();
+      curTable = curTable->getParentScope();
     }
-
 
     //take action for this token
     switch (state) {
@@ -381,7 +380,7 @@ bool DescentParser::parse(const string& fname, CodeNode*& root, SymbolTable*& ta
         }
 
         //record this argument
-        string err = curTable->addSymbol(curSymbol);
+        string err = curTable->addParameter(curSymbol);
         if (!err.empty()) {
           delete root;
           delete table;

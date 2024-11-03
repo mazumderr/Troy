@@ -15,7 +15,7 @@ enum class SymbolType {
   BOOL,
 };
 
-class SymbolTable;
+class CodeScope;
 
 struct Symbol {
   string name = "";
@@ -24,26 +24,30 @@ struct Symbol {
   unsigned int arraySize = 0;
 
   SymbolType returnType = SymbolType::NONE;
-  SymbolTable* childTable;
+  CodeScope* myScope = nullptr;
 };
 
 string getReadableSymbolType(const SymbolType&);
 
-class SymbolTable {
+class CodeScope {
   public:
+    ~CodeScope();
     void print();
-    SymbolTable* creatSubScope();
-    SymbolTable* getParentTable();
+    CodeScope* creatSubScope();
+    CodeScope* getParentScope();
     [[nodiscard]] string addSymbol(Symbol*);
-    [[nodiscard]] string addSymbolAndDescend(Symbol*, SymbolTable*&);
+    [[nodiscard]] string addParameter(Symbol*);
+    [[nodiscard]] string addSymbolAndDescend(Symbol*, CodeScope*&);
     
   private:
     list<Symbol*> symbols;
-    list<SymbolTable> subScopes;
-    SymbolTable* parentTable = nullptr;
+    list<Symbol*> parameters;
+    list<CodeScope> subScopes;
+    CodeScope* parentScope = nullptr;
 
     void print(const unsigned int curScope);
-    void print(const Symbol &s, const unsigned int curScope);
+    void print(const Symbol &s, const unsigned int curScope, bool);
+    bool checkForbidden(const string& s);
 };
 
 #endif

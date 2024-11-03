@@ -48,7 +48,7 @@ class CodeNode {
 
 class DescentParser {
   public:
-    bool parse(const string&, CodeNode*&, SymbolTable*&);
+    bool parse(const string&, CodeNode*&, CodeScope*&);
 
   private:
     map<string, SymbolType> typemap = {

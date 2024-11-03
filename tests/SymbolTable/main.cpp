@@ -51,78 +51,54 @@ int main(){
     }
 
     //dump all output to a stream for comparison later
-    // stringstream testout;
-    // streambuf* coutBackup = cout.rdbuf(testout.rdbuf());
+    stringstream testout;
+    streambuf* coutBackup = cout.rdbuf(testout.rdbuf());
 
     //get tokens
     {
       DescentParser d;
       CodeNode* tree;
-      SymbolTable* table;
+      CodeScope* table;
       
       if (d.parse(testIns[i], tree, table)) {
         table->print();
       }
-
-      // if (!d.checkError()) {
-
-      //   list<Symbol*> symbolTable = d.getSymbolTable();
-
-      //   list<Symbol*> functions;
-
-      //   for (auto s: symbolTable) {
-      //     s->print(true);
-          
-      //     //get pointers to all the function symbols so that we can print parameter lists later
-      //     if (s->type == SymbolType::FUNCTION) functions.push_back(s);
-      //   }
-
-      //   cout << endl;
-
-      //   for (auto f: functions) {
-      //     cout << "   PARAMETER LIST FOR: " << f->name << endl;
-
-      //     for (auto s: *(f->arguments)) {
-      //       s->print(false);
-      //     }
-      //   }
-      // }
     }
 
     //restore cout
-    // cout.rdbuf(coutBackup);
+    cout.rdbuf(coutBackup);
     
-    //verification
-    // {
-    //   char c1,c2;
-    //   unsigned int pos = 0, line = 0;
+    // verification
+    {
+      char c1,c2;
+      unsigned int pos = 0, line = 0;
 
-    //   while (testout.get(c1) && key.get(c2)) {
-    //     if (tolower(c1) != tolower(c2)) {
-    //       cout << "mismatch at " << line << ":" << pos << endl;
+      while (testout.get(c1) && key.get(c2)) {
+        if (tolower(c1) != tolower(c2)) {
+          cout << "mismatch at " << line << ":" << pos << endl;
 
-    //       string badline;
-    //       testout.seekg(0);
-    //       for (unsigned int i = 0; i <= line; ++i) {
-    //         getline(testout,badline);
-    //       }
+          string badline;
+          testout.seekg(0);
+          for (unsigned int i = 0; i <= line; ++i) {
+            getline(testout,badline);
+          }
 
-    //       cout << "\"" << badline << "\"" << endl;
+          cout << "\"" << badline << "\"" << endl;
 
-    //       cout << testout.str();
+          cout << testout.str();
 
-    //       exit(-1);
-    //     }
+          exit(-1);
+        }
 
-    //     ++pos;
-    //     if (c1 == '\n') {
-    //       pos = 0;
-    //       ++line;
-    //     }
-    //   }
+        ++pos;
+        if (c1 == '\n') {
+          pos = 0;
+          ++line;
+        }
+      }
 
-    //   cout << "\tsuccess" << endl;
-    // }
+      cout << "\tsuccess" << endl;
+    }
   }
 
   return 0;
