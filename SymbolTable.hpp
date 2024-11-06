@@ -3,6 +3,7 @@
 
 #include <string>
 #include <list>
+#include "CodeNode.hpp"
 
 using namespace std;
 
@@ -16,6 +17,7 @@ enum class SymbolType {
 };
 
 class CodeScope;
+class CodeNode;
 
 struct Symbol {
   string name = "";
@@ -25,6 +27,11 @@ struct Symbol {
 
   SymbolType returnType = SymbolType::NONE;
   CodeScope* myScope = nullptr;
+  CodeNode* myDeclaration = nullptr;
+
+  int myInt;
+  char myChar;
+  bool myBool;
 };
 
 string getReadableSymbolType(const SymbolType&);
@@ -33,7 +40,7 @@ class CodeScope {
   public:
     ~CodeScope();
     void print();
-    CodeScope* creatSubScope();
+    CodeScope* createSubScope();
     CodeScope* getParentScope();
     [[nodiscard]] string addSymbol(Symbol*);
     [[nodiscard]] string addParameter(Symbol*);

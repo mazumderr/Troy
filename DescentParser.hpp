@@ -11,44 +11,15 @@
 #ifndef DESCENTPARSER_HPP
 #define DESCENTPARSER_HPP
 
+#include "CodeNode.hpp"
 #include "Scanner.hpp"
 #include "SymbolTable.hpp"
 #include "Tools.hpp"
 #include <map>
 
-
-  // types of abstract nodes
-  // NONE,
-  // DECLARATION,
-  // BEGIN_BLOCK,
-  // END_BLOCK,
-  // ASSIGNMENT,
-  // IF,
-  // RETURN,
-  // PRINTF,
-
-class CodeNode {
-  public:
-    CodeNode(const Token& t);
-    ~CodeNode();
-
-    Token* getToken();
-    CodeNode* getChild();
-    CodeNode* getSibling();
-    void setChild(CodeNode*);
-    void setSibling(CodeNode*);
-    void setToken(Token*);
-    void setToken(const Token&);
-
-  private:
-    CodeNode* child = nullptr;
-    CodeNode* sibling = nullptr;
-    Token* token = nullptr;
-};
-
 class DescentParser {
   public:
-    bool parse(const string&, CodeNode*&, CodeScope*&);
+    bool parse(const string&, SyntaxTree*&, CodeScope*&);
 
   private:
     map<string, SymbolType> typemap = {
@@ -56,6 +27,8 @@ class DescentParser {
       {"char", SymbolType::CHAR},
       {"bool", SymbolType::BOOL},
     };
+    string getParameters(list<Token>::iterator&, CodeScope *&);
+    void handleArrayDeclaration(list<Token>::iterator& t, Symbol* s);
 };
 
 #endif

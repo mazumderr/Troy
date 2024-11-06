@@ -46,7 +46,7 @@ CodeScope::~CodeScope(){
  * 
  * @return CodeScope* pointer to the scope we just created
  */
-CodeScope* CodeScope::creatSubScope() {
+CodeScope* CodeScope::createSubScope() {
   subScopes.push_back(CodeScope());
   subScopes.back().parentScope = this;
   return &(subScopes.back());
@@ -73,7 +73,7 @@ string CodeScope::addSymbolAndDescend(Symbol* s, CodeScope* &t) {
   if (str != "") {
     return str;
   }
-  t = creatSubScope();
+  t = createSubScope();
   symbols.back()->myScope = t;
   return "";
 }
@@ -85,6 +85,7 @@ string CodeScope::addSymbolAndDescend(Symbol* s, CodeScope* &t) {
  * @return true if word is reserved
  */
 bool CodeScope::checkForbidden(const string& s) {
+  // cout << "checkForbidden " << s << endl;
   //make sure the symbol's name is allowed
   string forbiddenNames[] = {
     "char",
