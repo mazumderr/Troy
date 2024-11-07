@@ -26,11 +26,11 @@ int main(){
   };
 
   string testOuts[] = {
-    "io/out/assignment5/output-programming_assignment_5-test_file_1.txt",
-    "io/out/assignment5/output-programming_assignment_5-test_file_2.txt",
-    "io/out/assignment5/output-programming_assignment_5-test_file_3.txt",
-    "io/out/assignment5/output-programming_assignment_5-test_file_4.txt",
-    "io/out/assignment5/output-programming_assignment_5-test_file_5.txt",
+    "io/out/assignment5/o1.txt",
+    "io/out/assignment5/o2.txt",
+    "io/out/assignment5/o3.txt",
+    "io/out/assignment5/o4.txt",
+    "io/out/assignment5/o5.txt",
   };
 
   //iterate across input files
@@ -39,12 +39,12 @@ int main(){
     cout << "input file: " << testIns[i] << endl;
     cout << "key file: " << testOuts[i] << endl;
 
-    // //open the file containing the correct answers
-    // ifstream key(testOuts[i]);
-    // if (!key.is_open()) {
-    //   cout << "unable to open key file " << testOuts[i] << endl;
-    //   exit(-1);
-    // }
+    //open the file containing the correct answers
+    ifstream key(testOuts[i]);
+    if (!key.is_open()) {
+      cout << "unable to open key file " << testOuts[i] << endl;
+      exit(-1);
+    }
 
     //dump all output to a stream for comparison later
     // stringstream testout;

@@ -40,6 +40,7 @@ class CodeNode{
     CodeNode* getSibling();
     CodeNode* getChild();
     void setExpression(vector<Token>);
+    vector<Token> getExpression();
     
   private:
     CodeNode* sibling = nullptr;

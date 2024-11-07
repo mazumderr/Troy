@@ -303,12 +303,16 @@ bool DescentParser::parse(const string& fname, SyntaxTree*& root, CodeScope*& ta
           root->descend(n);
         }
         //assignment
-        else if (next(t)->getType() == TokenType::ASSIGNMENT) {
+        else if (next(t)->getType() == TokenType::ASSIGNMENT || next(t)->getType() == TokenType::LEFT_BRACKET) {
           //make an assignment node
           CodeNode *n = new CodeNode;
           n->setType(NodeType::ASSIGNMENT);
           vector<Token> expression = {*t};  //get the name we're assigning to
           ++t;//skip the name
+          while (t->getType() != TokenType::ASSIGNMENT) {
+            expression.push_back(*t);
+            ++t;
+          }
           ++t;//skip the equals
           PostFixEvaluator p;
           while (p.Eval(*t)) t++;

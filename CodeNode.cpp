@@ -62,6 +62,10 @@ void CodeNode::setExpression(vector<Token> e) {
   expression = e;
 }
 
+vector<Token> CodeNode::getExpression() {
+  return expression;
+}
+
 void CodeNode::setType(NodeType t) {
   if (type != NodeType::NONE) {
     cerr << "CodeNode: setTypeX2" << endl;
@@ -113,6 +117,9 @@ void SyntaxTree::print() {
   CodeNode* c = head;
   while (c != nullptr) {
     cout << getPrintableNodeType(c->getType());
+    // for (auto t: c->getExpression()) {
+    //   cout << " " << t.getSpelling() << ",";
+    // }
     if (c->getSibling() == nullptr) {
       cout << endl;
       c = c->getChild();
