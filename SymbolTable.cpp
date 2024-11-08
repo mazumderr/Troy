@@ -240,7 +240,6 @@ void CodeScope::print(const Symbol &s, const unsigned int curScope, bool itline)
   << endl
   << "    DATATYPE_IS_ARRAY: " << (s.isArray ? "yes" : "no") << endl
   << "  DATATYPE_ARRAY_SIZE: " << s.arraySize << endl
-  << "                SCOPE: " << curScope << endl 
-  << " has child scope?: " << (s.myScope == nullptr ? "no" : "yes, " + to_string(s.myScope->parameters.size()))
+  << "                SCOPE: " << curScope << endl
   << endl;
 }

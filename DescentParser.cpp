@@ -49,6 +49,7 @@ bool DescentParser::parse(const string& fname, SyntaxTree*& root, CodeScope*& ta
           
           //make a symbol for this function
           Symbol *s = new Symbol;
+          s->type = SymbolType::FUNCTION;
           s->name = fName;
           s->returnType = typemap[rType];
 
@@ -57,13 +58,13 @@ bool DescentParser::parse(const string& fname, SyntaxTree*& root, CodeScope*& ta
 
           string err = curTable->addSymbolAndDescend(s, curTable);
           if (!err.empty()) {
-            cout << "DescentParser: " << err << endl;
+            cout << "Error on line " << t->getLine() << ": " << err << endl;
             return false;
           }
 
           err = getParameters(t, curTable);
           if (!err.empty()) {
-            cout << "DescentParser: " << err << endl;
+            cout << "Error on line " << t->getLine() << ": " << err << endl;
             return false;
           }
 
@@ -88,6 +89,7 @@ bool DescentParser::parse(const string& fname, SyntaxTree*& root, CodeScope*& ta
 
           //make a symbol for this procedure
           Symbol *s = new Symbol;
+          s->type = SymbolType::PROCEDURE;
           s->name = pName;
 
           //link the symbol to this code node
@@ -95,7 +97,7 @@ bool DescentParser::parse(const string& fname, SyntaxTree*& root, CodeScope*& ta
           
           string err = curTable->addSymbolAndDescend(s, curTable);
           if (!err.empty()) {
-            cout << "DescentParser: " << err << endl;
+            cout << "Error on line " << t->getLine() << ": " << err << endl;
             return false;
           }
           // cout << "p:"<<t->getSpelling() << endl;
@@ -103,7 +105,7 @@ bool DescentParser::parse(const string& fname, SyntaxTree*& root, CodeScope*& ta
           //grab each parameter for the subscope
           err = getParameters(t,curTable);
           if (!err.empty()) {
-            cout << "DescentParser: " << err << endl;
+            cout << "Error on line " << t->getLine() << ": " << err << endl;
             return false;
           }
 
@@ -342,10 +344,10 @@ bool DescentParser::parse(const string& fname, SyntaxTree*& root, CodeScope*& ta
             // cout << vType << " " << vName << (s->isArray ? " (array)" : "") << endl;
 
             string err = curTable->addSymbol(s);
-            if (!err.empty()) {
-              cout << "DescentParser: " << err << endl;
-              return false;
-            }
+          if (!err.empty()) {
+            cout << "Error on line " << t->getLine() << ": " << err << endl;
+            return false;
+          }
           } while (t->getType() == TokenType::COMMA);
 
           root->descend(n);
@@ -402,7 +404,9 @@ string DescentParser::getParameters(list<Token>::iterator& t, CodeScope *& curTa
     handleArrayDeclaration(t, a);
 
     string err = curTable->addParameter(a);
-    if (!err.empty()) return err;
+    if (!err.empty()) {
+      return err;
+    }
   }
 
   return "";

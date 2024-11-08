@@ -57,7 +57,7 @@ int main(){
     //get tokens
     {
       DescentParser d;
-      CodeNode* tree;
+      SyntaxTree* tree;
       CodeScope* table;
       
       if (d.parse(testIns[i], tree, table)) {
