@@ -56,40 +56,19 @@ int main(){
 
     //get tokens
     {
-      DescentParser d(testIns[i]);
-      d.parse();
-      if (!d.checkError()) {
-
-        list<Symbol*> symbolTable = d.getSymbolTable();
-
-        list<Symbol*> functions;
-
-        for (auto s: symbolTable) {
-          s->print(true);
-          
-          //get pointers to all the function symbols so that we can print parameter lists later
-          if (s->type == SymbolType::FUNCTION) functions.push_back(s);
-        }
-
-        cout << endl;
-
-        for (auto f: functions) {
-          cout << "   PARAMETER LIST FOR: " << f->name << endl;
-
-          for (auto s: *(f->arguments)) {
-            s->print(false);
-          }
-        }
+      DescentParser d;
+      SyntaxTree* tree;
+      CodeScope* table;
+      
+      if (d.parse(testIns[i], tree, table)) {
+        table->print();
       }
     }
 
     //restore cout
     cout.rdbuf(coutBackup);
-
-    //here's the actual output for this file
-    // cout << testout.str();
-
-    //verification
+    
+    // verification
     {
       char c1,c2;
       unsigned int pos = 0, line = 0;
@@ -124,5 +103,3 @@ int main(){
 
   return 0;
 }
-
-//a.exe io\in\assignment2\programming_assignment_2-test_file_1.c

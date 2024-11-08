@@ -48,15 +48,18 @@ bool PostFixEvaluator::Eval(Token Symbol) {
             Stack.pop();
             return true;
         case TokenType::RIGHT_PARENTHESIS:
+            if(parenthesis == 0){
+              while(!Stack.empty()){
+                  PostfixEquation.push_back(Stack.top());
+                  Stack.pop();
+              }
+              return false;
+            }
+            parenthesis--;
             while(Stack.top().getSpelling() != "("){
                 PostfixEquation.push_back(Stack.top());
                 Stack.pop();
             }
-            if(parenthesis == 0){
-                cerr << ("Too many closed Parenthesis");
-                exit(1);
-            }
-            parenthesis--;
             Stack.pop();
             return true;
         case TokenType::NOT:

@@ -37,5 +37,8 @@ assignment3:
 TestSymbolTable:
 	make -f tests/SymbolTable/Makefile
 
+TestAST:
+	make -f tests/AbstractSyntaxTree/Makefile
+
 assignment4:
 	make -f deliverables/assignment4/Makefile
