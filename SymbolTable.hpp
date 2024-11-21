@@ -30,8 +30,8 @@ struct Symbol {
   CodeNode* myDeclaration = nullptr;
 
   int myInt;
-  char myChar;
-  bool myBool;
+  int myChar;
+  int myBool;
 };
 
 string getReadableSymbolType(const SymbolType&);
@@ -42,6 +42,8 @@ class CodeScope {
     void print();
     CodeScope* createSubScope();
     CodeScope* getParentScope();
+    list<Symbol*> getParameters();
+    Symbol* lookupSymbol(const string&);
     [[nodiscard]] string addSymbol(Symbol*);
     [[nodiscard]] string addParameter(Symbol*);
     [[nodiscard]] string addSymbolAndDescend(Symbol*, CodeScope*&);

@@ -21,6 +21,7 @@ bool PostFixEvaluator::Eval(Token Symbol) {
                 Eval(toke);
             }
         case TokenType::IDENTIFIER:
+            prev = Symbol;
             PostfixEquation.push_back(Symbol);
             return true;
         case TokenType::LEFT_BRACKET:
