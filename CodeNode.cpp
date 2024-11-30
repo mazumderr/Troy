@@ -58,6 +58,10 @@ CodeNode* CodeNode::getChild() {
   return child;
 }
 
+CodeScope* CodeNode::getScope() {
+    return myScope;
+}
+
 void CodeNode::setExpression(vector<Token> e) {
   expression = e;
 }

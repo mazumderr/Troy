@@ -39,6 +39,7 @@ class CodeNode{
     void setChild(CodeNode*);
     CodeNode* getSibling();
     CodeNode* getChild();
+    CodeScope* getScope();
     void setExpression(vector<Token>);
     vector<Token> getExpression();
     

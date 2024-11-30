@@ -32,6 +32,7 @@ private:
     stack<Token> Stack;
     int parenthesis;
     int Brackets;
+    Token prev;
 
 };
 

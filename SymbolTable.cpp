@@ -41,6 +41,33 @@ CodeScope::~CodeScope(){
   }
 }
 
+Symbol* CodeScope::lookupSymbol(const string& name) {
+    CodeScope* cur = this;
+
+    while (cur != nullptr) {
+        for (auto s: cur->symbols) {
+            if (s->name == name) return *(&s);
+        }
+        for (auto s: cur->parameters) {
+            if (s->name == name) return *(&s);
+        }
+        cur = cur->parentScope;
+    }
+
+    return nullptr;
+}
+
+list<Symbol*> CodeScope::getParameters() {
+    return parameters;
+}
+
+void Symbol::assign(int val) {
+    if (value == nullptr) {
+        value = new int[ isArray ? arraySize : 1];
+    }
+    value[0] = val;
+}
+
 /**
  * @brief Create a subscope for this scope (function bodies, if statements, etc)
  * 
