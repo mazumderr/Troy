@@ -11,20 +11,28 @@ PostFixEvaluator::PostFixEvaluator() {
 bool PostFixEvaluator::Eval(Token Symbol) {
     switch (Symbol.getType()){
         case TokenType::INTEGER:
-            if(!isdigit(Symbol.getSpelling()[0])){
-                Token toke;
-                toke.setSpelling(string{Symbol.getSpelling()[0]});
-                toke.setType(Symbol.getSpelling()[0] == '+' ?
-                             TokenType::PLUS
-                             :
-                             TokenType::MINUS);
-                Eval(toke);
+            if(prev.getType() == TokenType::INTEGER) { // want subtraction to happen
+                if(!isdigit(Symbol.getSpelling()[0])){
+                    Token toke;
+                    toke.setSpelling(string{Symbol.getSpelling()[0]});
+                    toke.setType(Symbol.getSpelling()[0] == '+' ?
+                                 TokenType::PLUS
+                                                                :
+                                 TokenType::MINUS);
+                    Eval(toke);
+                    Symbol.getSpelling().erase(Symbol.getSpelling().begin()); // strip sign from int
+                }
             }
+        case TokenType::STRING:
         case TokenType::IDENTIFIER:
             prev = Symbol;
             PostfixEquation.push_back(Symbol);
             return true;
+        case TokenType::DOUBLE_QUOTE:
+        case TokenType::SINGLE_QUOTE:
+            return true;
         case TokenType::LEFT_BRACKET:
+            prev = Symbol;
             PostfixEquation.push_back(Symbol);
         case TokenType::LEFT_PARENTHESIS:
             if(Symbol.getType() == TokenType::LEFT_BRACKET){
@@ -33,6 +41,7 @@ bool PostFixEvaluator::Eval(Token Symbol) {
             else{
                 parenthesis++;
             }
+            prev = Symbol;
             Stack.push(Symbol);
             return true;
         case TokenType::RIGHT_BRACKET:
@@ -78,18 +87,22 @@ bool PostFixEvaluator::Eval(Token Symbol) {
         case TokenType::BOOLEAN_AND:
         case TokenType::BOOLEAN_OR:
             if(Stack.empty() || (Precedence[Stack.top().getSpelling()] < Precedence[Symbol.getSpelling()])){
+                prev = Symbol;
                 Stack.push(Symbol);
             }
             else if(Precedence[Stack.top().getSpelling()] == Precedence[Symbol.getSpelling()]){
                 PostfixEquation.push_back(Stack.top());
                 Stack.pop();
+                prev = Symbol;
                 Stack.push(Symbol);
             }
             else{
                 while(!Stack.empty() && (Precedence[Stack.top().getSpelling()] > Precedence[Symbol.getSpelling()])){
                     PostfixEquation.push_back(Stack.top());
+                    prev = Symbol;
                     Stack.pop();
                 }
+                prev = Symbol;
                 Stack.push(Symbol);
             }
             return true;

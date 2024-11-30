@@ -61,6 +61,13 @@ list<Symbol*> CodeScope::getParameters() {
     return parameters;
 }
 
+void Symbol::assign(int val) {
+    if (value == nullptr) {
+        value = new int[ isArray ? arraySize : 1];
+    }
+    value[0] = val;
+}
+
 /**
  * @brief Create a subscope for this scope (function bodies, if statements, etc)
  * 

@@ -29,9 +29,9 @@ struct Symbol {
   CodeScope* myScope = nullptr;
   CodeNode* myDeclaration = nullptr;
 
-  int myInt;
-  int myChar;
-  int myBool;
+  void assign(int);
+
+  int* value = nullptr;
 };
 
 string getReadableSymbolType(const SymbolType&);
