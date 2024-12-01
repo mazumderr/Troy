@@ -23,16 +23,26 @@ int main(int argc, char** argv){
   DescentParser d;
   d.parse(argv[1],AST,symbolTable);
   Interpreter(symbolTable->lookupSymbol("main")->myDeclaration, returnValue, SymbolType::NONE);
-  //okay now assume that argv[1] is the desired input filename :D
-
   return 0;
 }
 
+/**
+ * @brief Convert a token's value into an integer representation.
+ *
+ * This function checks the type of a given token and converts its value to an integer.
+ * If the token represents a single-character string, it returns the ASCII value of the character.
+ * Otherwise, it interprets the token's value as an integer string and converts it accordingly.
+ *
+ * @param cur Pointer to the token whose value needs to be converted.
+ * @return The integer representation of the token's value.
+ */
 int valueConversion(Token* cur){
+    // Check if the token is a single-character string.
     if((cur->getType() == TokenType::STRING) && (cur->getSpelling().size() == 1)){
-        return cur->getSpelling().at(0); // returns a char
+        return cur->getSpelling().at(0); // Return the ASCII value of the character.
     }
     else{
+        // Convert the string representation of the token to an integer.
         return std::stoi(cur->getSpelling());
     }
 }
@@ -63,13 +73,6 @@ int math(vector<Token> equation, CodeScope* Scope, bool &isBool){
 
     // Process each token in the expression to evaluate it.
     for (int i = 0; i < equationCopy.size(); i++) {
-
-
-//        Symbol*array = Scope->lookupSymbol(equationCopy.at(0).getSpelling());
-//        if(array->isArray){
-//            for(int j = )
-//            array->value[i-2] =
-//        }
 
 
         Token toke; // Temporary token for result storage.
@@ -161,17 +164,17 @@ int math(vector<Token> equation, CodeScope* Scope, bool &isBool){
                     value = valueConversion(&equationCopy.at(i-1)) + valueConversion(&equationCopy.at(i-2));
                 }
 
-                    //checking if the first int being multiplied is an integer and the second is a variable
+                    //checking if the first int being added is an integer and the second is a variable
                 else if((equationCopy.at(i-1).getType() != TokenType::INTEGER || equationCopy.at(i-1).getType() != TokenType::STRING) && (equationCopy.at(i-2).getType() == TokenType::INTEGER || equationCopy.at(i-2).getType() == TokenType::STRING)){
 
                     //getting the value saved in the symbol table
                     varible = Scope->lookupSymbol(equationCopy.at(i-1).getSpelling());
 
-                    //multiplying the 2 values together
+                    //adding the 2 values together
                     value = varible->value[0] + valueConversion(&equationCopy.at(i-2));
                 }
 
-                    //checking if the other int being multiplied is a variable and if so then grabbing it from the symbol table
+                    //checking if the other int being added is a variable and if so then grabbing it from the symbol table
                 else if((equationCopy.at(i-1).getType() == TokenType::INTEGER || equationCopy.at(i-1).getType() == TokenType::STRING) && (equationCopy.at(i-2).getType() != TokenType::INTEGER || equationCopy.at(i-2).getType() != TokenType::STRING)){
 
                     //grabbing value from symbol table
@@ -204,7 +207,7 @@ int math(vector<Token> equation, CodeScope* Scope, bool &isBool){
                     value = valueConversion(&equationCopy.at(i-2)) - valueConversion(&equationCopy.at(i-1));
                 }
 
-                //checking if the first int being added is an integer and the second is a variable
+                //checking if the first int being subtracted is an integer and the second is a variable
                 else if((equationCopy.at(i-1).getType() != TokenType::INTEGER || equationCopy.at(i-1).getType() != TokenType::STRING) && (equationCopy.at(i-2).getType() == TokenType::INTEGER || equationCopy.at(i-2).getType() == TokenType::STRING)){
 
                     //getting the value saved in the symbol table
@@ -214,7 +217,7 @@ int math(vector<Token> equation, CodeScope* Scope, bool &isBool){
                     value =  valueConversion(&equationCopy.at(i-2)) - varible->value[0];
                 }
 
-                    //checking if the other int being added is a variable and if so then grabbing it from the symbol table
+                    //checking if the other int being subtracted is a variable and if so then grabbing it from the symbol table
                 else if((equationCopy.at(i-1).getType() == TokenType::INTEGER || equationCopy.at(i-1).getType() == TokenType::STRING) && (equationCopy.at(i-2).getType() != TokenType::INTEGER || equationCopy.at(i-2).getType() != TokenType::STRING)){
 
                     //grabbing value from symbol table
@@ -246,7 +249,7 @@ int math(vector<Token> equation, CodeScope* Scope, bool &isBool){
                     value = valueConversion(&equationCopy.at(i-2)) / valueConversion(&equationCopy.at(i-1));
                 }
 
-                    //checking if the first int being added is an integer and the second is a variable
+                    //checking if the first int being divided is an integer and the second is a variable
                 else if((equationCopy.at(i-1).getType() != TokenType::INTEGER) && (equationCopy.at(i-2).getType() == TokenType::INTEGER)){
 
                     //getting the value saved in the symbol table
@@ -256,7 +259,7 @@ int math(vector<Token> equation, CodeScope* Scope, bool &isBool){
                     value =  valueConversion(&equationCopy.at(i-2)) / varible->value[0];
                 }
 
-                    //checking if the other int being added is a variable and if so then grabbing it from the symbol table
+                    //checking if the other int being divided is a variable and if so then grabbing it from the symbol table
                 else if((equationCopy.at(i-1).getType() == TokenType::INTEGER) && (equationCopy.at(i-2).getType() != TokenType::INTEGER)){
 
                     //grabbing value from symbol table
@@ -288,7 +291,7 @@ int math(vector<Token> equation, CodeScope* Scope, bool &isBool){
                     value = valueConversion(&equationCopy.at(i-2)) % valueConversion(&equationCopy.at(i-1));
                 }
 
-                    //checking if the first int being added is an integer and the second is a variable
+                    //checking if the first int being Mod is an integer and the second is a variable
                 else if((equationCopy.at(i-1).getType() != TokenType::INTEGER) && (equationCopy.at(i-2).getType() == TokenType::INTEGER)){
 
                     //getting the value saved in the symbol table
@@ -298,7 +301,7 @@ int math(vector<Token> equation, CodeScope* Scope, bool &isBool){
                     value =  valueConversion(&equationCopy.at(i-2)) % varible->value[0];
                 }
 
-                    //checking if the other int being added is a variable and if so then grabbing it from the symbol table
+                    //checking if the other int being Mod is a variable and if so then grabbing it from the symbol table
                 else if((equationCopy.at(i-1).getType() == TokenType::INTEGER) && (equationCopy.at(i-2).getType() != TokenType::INTEGER)){
 
                     //grabbing value from symbol table
@@ -335,12 +338,12 @@ int math(vector<Token> equation, CodeScope* Scope, bool &isBool){
                     }
                 }
 
-                    //checking if the first int being added is an integer and the second is a variable
+                    //checking if the first int being compared is an integer and the second is a variable
                 else if((equationCopy.at(i-1).getType() != TokenType::INTEGER) && (equationCopy.at(i-2).getType() == TokenType::INTEGER)){
                     //getting the value saved in the symbol table
                     varible = Scope->lookupSymbol(equationCopy.at(i-1).getSpelling());
 
-                    //adding the 2 values together
+                    //comparing the 2 values together
                     if((valueConversion(&equationCopy.at(i-2)) == 1) || (varible->value[0] == 1)){
                         value = 1;
                     }
@@ -349,7 +352,7 @@ int math(vector<Token> equation, CodeScope* Scope, bool &isBool){
                     }
                 }
 
-                    //checking if the other int being added is a variable and if so then grabbing it from the symbol table
+                    //checking if the other int being compared is a variable and if so then grabbing it from the symbol table
                 else if((equationCopy.at(i-1).getType() == TokenType::INTEGER) && (equationCopy.at(i-2).getType() != TokenType::INTEGER)){
 
                     //grabbing value from symbol table
@@ -363,7 +366,7 @@ int math(vector<Token> equation, CodeScope* Scope, bool &isBool){
                         value = 0;
                     }
                 }
-                    //otherwise both ints are variables and need to be looked up in the symbol table
+                    //otherwise both are variables and need to be looked up in the symbol table
                 else{
                     varible = Scope->lookupSymbol(equationCopy.at(i-1).getSpelling());
                     varible2 = Scope->lookupSymbol(equationCopy.at(i-2).getSpelling());
@@ -396,12 +399,12 @@ int math(vector<Token> equation, CodeScope* Scope, bool &isBool){
                     }
                 }
 
-                    //checking if the first int being added is an integer and the second is a variable
+                    //checking if the first int being compared is an integer and the second is a variable
                 else if((equationCopy.at(i-1).getType() != TokenType::INTEGER) && (equationCopy.at(i-2).getType() == TokenType::INTEGER)){
                     //getting the value saved in the symbol table
                     varible = Scope->lookupSymbol(equationCopy.at(i-1).getSpelling());
 
-                    //adding the 2 values together
+                    //comparing the 2 values together
                     if((valueConversion(&equationCopy.at(i-2)) == 1) && (varible->value[0] == 1)){
                         value = 1;
                     }
@@ -410,7 +413,7 @@ int math(vector<Token> equation, CodeScope* Scope, bool &isBool){
                     }
                 }
 
-                    //checking if the other int being added is a variable and if so then grabbing it from the symbol table
+                    //checking if the other int being compared is a variable and if so then grabbing it from the symbol table
                 else if((equationCopy.at(i-1).getType() == TokenType::INTEGER) && (equationCopy.at(i-2).getType() != TokenType::INTEGER)){
 
                     //grabbing value from symbol table
@@ -448,7 +451,6 @@ int math(vector<Token> equation, CodeScope* Scope, bool &isBool){
 
             case TokenType::BOOLEAN_EQUAL:
                 isBool = true;
-                // int == int
                 if((equationCopy.at(i-1).getType() == TokenType::INTEGER) && (equationCopy.at(i-2).getType() == TokenType::INTEGER)){
                     if(valueConversion(&equationCopy.at(i-2)) == valueConversion(&equationCopy.at(i-1))){
                         value = 1;
@@ -458,7 +460,6 @@ int math(vector<Token> equation, CodeScope* Scope, bool &isBool){
                     }
                 }
 
-                // a == int
                 else if((equationCopy.at(i-1).getType() != TokenType::INTEGER) && (equationCopy.at(i-2).getType() == TokenType::INTEGER)){
                     //getting the value saved in the symbol table
                     varible = Scope->lookupSymbol(equationCopy.at(i-1).getSpelling());
@@ -471,8 +472,6 @@ int math(vector<Token> equation, CodeScope* Scope, bool &isBool){
                         value = 0;
                     }
                 }
-
-                    // int == b
                 else if((equationCopy.at(i-1).getType() == TokenType::INTEGER) && (equationCopy.at(i-2).getType() != TokenType::INTEGER)){
 
                     //grabbing value from symbol table
@@ -851,44 +850,62 @@ int math(vector<Token> equation, CodeScope* Scope, bool &isBool){
 
         }
     }
-    // If only one token is left, return its value as the result.
+    //If only one token is left, return its value as the result.
     if(equationCopy.size() == 1){
         return valueConversion(&equationCopy.at(0));
     }
     return valueConversion(&equationCopy.at(1)); // Return the final computed value.
 }
 
+/**
+ * @brief Interpret and execute a syntax tree starting from a given node.
+ *
+ * This function traverses the syntax tree, executing various node types such as assignments,
+ * loops, conditional statements, and function calls. It also handles return values for
+ * functions or procedures and manages the scope during interpretation.
+ *
+ * @param start Pointer to the starting node in the syntax tree.
+ * @param returnValue Reference to store the return value (if any) of the interpretation.
+ * @param returnType The expected type of the return value.
+ * @return A pointer to the next node after the current block of execution.
+ */
 CodeNode* Interpreter(CodeNode* start, void* &returnValue, SymbolType returnType){
-    CodeScope* curScope = start->getChild()->getScope();
-    CodeNode* cur = start->getChild();
-    bool needElse = true;
-    //go until we hit the end of the program
+    CodeScope* curScope = start->getChild()->getScope(); // Current scope for symbol resolution.
+    CodeNode* cur = start->getChild();                   // Pointer to the current node being executed.
+    bool needElse = true;                                // Flag to track whether to execute an ELSE block.
+    // Traverse the syntax tree until the END node is reached.
     while((cur->getType() != NodeType::END)){
-        bool curBool = false;
+        bool curBool = false; // Tracks if the result of a condition is boolean.
         switch (cur->getType()) {
             //if it is an assignment type we need to evaluate the expression
             case NodeType::ASSIGNMENT: {
-                assignment(cur,curScope,curBool);
-                cur = cur->getChild();
+                // Handle an assignment operation.
+                assignment(cur,curScope,curBool); // Perform the assignment.
+                cur = cur->getChild();  // Move to the next node.
             }
             break;
             case NodeType::RETURN:
-                returnValue = (void*)(new int(curScope->lookupSymbol(cur->getExpression().at(0).getSpelling())->value[0]));
-                cur = cur->getChild();
+                // Handle a return statement.
+                returnValue = (void*)(new int(curScope->lookupSymbol(cur->getExpression().at(0).getSpelling())->value[0])); //Saving the return value from the function
+                cur = cur->getChild(); // Move to the next node.
                 break;
             case NodeType::IF:
+                // Handle an IF conditional statement.
                 if(assignment(cur,curScope,curBool) != 0 ){
+                    // Execute the IF block if the condition is true.
                     cur = Interpreter(cur,returnValue,returnType)->getChild();
-                    needElse = false;
+                    needElse = false; // Skip the ELSE block.
                 }
                 else{
+                    // Skip the IF block and move to the ELSE block (if present).
                     needElse = true;
                     cur = getEndBlock(cur->getChild())->getChild();
                 }
                 break;
 
             case NodeType::PRINTF:{
-                int count = 1;
+                //Handle a PRINTF statement.
+                int count = 1; //Counter for handling format specifiers.
                 for(int i = 0; i<cur->getExpression().at(0).getSpelling().size(); i++){
 
                     if(cur->getExpression().at(0).getSpelling().at(i) == '\\'){
@@ -899,6 +916,7 @@ CodeNode* Interpreter(CodeNode* start, void* &returnValue, SymbolType returnType
                     }
 
                     else if(cur->getExpression().at(0).getSpelling().at(i) == '%'){
+                        // Handle format specifiers.
                         if(curScope->lookupSymbol(cur->getExpression().at(count).getSpelling())->isArray){
                             int j = 0;
                             while((curScope->lookupSymbol(cur->getExpression().at(count).getSpelling())->value[j] != '\\') || (curScope->lookupSymbol(cur->getExpression().at(count).getSpelling())->value[j+1] != 'x') || (curScope->lookupSymbol(cur->getExpression().at(count).getSpelling())->value[j+2] != '0')){
@@ -917,7 +935,7 @@ CodeNode* Interpreter(CodeNode* start, void* &returnValue, SymbolType returnType
                         }
                     }
                     else{
-                        std::cout<< cur->getExpression().at(0).getSpelling().at(i);
+                        std::cout<< cur->getExpression().at(0).getSpelling().at(i); //Print the character.
                     }
                 }
             }
@@ -925,90 +943,127 @@ CodeNode* Interpreter(CodeNode* start, void* &returnValue, SymbolType returnType
                 break;
 
             case NodeType::FOR_INITIAL:{
-                CodeNode* condition = cur->getSibling();
-                CodeNode* increment = condition->getSibling();
+                // Handle a FOR loop.
+                CodeNode* condition = cur->getSibling(); // Condition node.
+                CodeNode* increment = condition->getSibling(); // Increment node.
 
-                assignment(cur,curScope,curBool);
+                assignment(cur,curScope,curBool); // Initialize the loop.
 
+                // Execute the loop while the condition is true
                 while(math(condition->getExpression(), curScope, curBool) != 0){
-                    curBool = false;
-                    Interpreter(increment,returnValue,returnType);
-                    assignment(increment,curScope,curBool);
+                    curBool = false; // Reset the boolean flag.
+                    Interpreter(increment,returnValue,returnType); // Execute the loop body.
+                    assignment(increment,curScope,curBool); // Perform the increment.
                 }
-                cur = getEndBlock(increment->getChild())->getChild();
+                cur = getEndBlock(increment->getChild())->getChild(); // Skip to the end of the loop.
 
             }
             break;
 
             case NodeType::WHILE:
+                // Handle a WHILE loop.
                 while (math(cur->getExpression(), curScope, curBool) != 0){
-                    curBool = false;
+                    curBool = false; // Reset the boolean flag.
                     Interpreter(cur,returnValue,returnType);
                 }
-                cur = getEndBlock(cur->getChild())->getChild();
+                cur = getEndBlock(cur->getChild())->getChild(); // Skip to the end of the loop.
                 break;
 
             case NodeType::CALL:
-                math(cur->getExpression(),curScope,curBool);
-                cur = cur->getChild();
+                // Handle a function or procedure call.
+                math(cur->getExpression(),curScope,curBool); // Evaluate the call.
+                cur = cur->getChild(); // Move to the next node.
                 break;
             case NodeType::ELSE:
+                // Handle an ELSE block.
                 if(needElse){
                     cur = Interpreter(cur,returnValue,returnType)->getChild();
                     if(cur->getChild()->getType() == NodeType::RETURN){
-                        cur = cur->getChild();
+                        cur = cur->getChild(); // Move to the RETURN node if present.
                     }
                 }
                 else{
-                    cur = getEndBlock(cur->getChild());
+                    cur = getEndBlock(cur->getChild());  // Skip the ELSE block.
                 }
                 break;
 
 
 
             default:
+                // Handle other node types by moving to the child node.
                 cur = cur->getChild();
         }
     }
     return cur;
 }
 
+/**
+ * @brief Locate the END block node in a syntax tree.
+ *
+ * This function traverses the syntax tree starting from a given node to find the corresponding
+ * END node of the current block. It ensures that nested blocks are properly handled by
+ * tracking BEGIN and END nodes to maintain balance.
+ *
+ * @param begin Pointer to the starting node in the syntax tree (typically a BEGIN node).
+ * @return A pointer to the END node of the block.
+ */
 CodeNode* getEndBlock(CodeNode* begin){
-    int counter = 0;
+    int counter = 0; // Counter to track the depth of nested blocks.
+
+    // Traverse the syntax tree until the correct END node is found.
     while(counter > 1 || begin->getType() != NodeType::END){
         if(begin->getType() == NodeType::BEGIN){
-            counter++;
+            counter++; // Entering a new nested block.
         }
         if(begin->getType() == NodeType::END){
-            counter--;
+            counter--;  // Exiting a nested block.
         }
-        begin = begin->getChild();
+        begin = begin->getChild(); // Move to the next node.
     }
-    return begin;
+    return begin; // Return the END node of the block.
 }
 
+/**
+ * @brief Execute an assignment operation within the syntax tree.
+ *
+ * This function processes an assignment node, resolves the left-hand side (LHS) operand,
+ * and evaluates the right-hand side (RHS) expression. It assigns the computed value
+ * to the variable in the current scope, handling integer, boolean, and character types.
+ * If the variable is an array, it assigns the appropriate values.
+ *
+ * @param cur Pointer to the current assignment node in the syntax tree.
+ * @param curScope Pointer to the current scope for variable resolution.
+ * @param isBool Reference to a boolean flag indicating if the result is a boolean value.
+ * @return The result of the assignment as an integer, or the boolean value for conditional statements.
+ */
 int assignment(CodeNode* cur, CodeScope* curScope, bool &isBool){
-    int ifBool;
-    int value;
+    int ifBool; // Stores the result if the assignment is part of a conditional statement.
+    int value; // Stores the computed value of the right-hand side expression.
+
+    // Resolve the left-hand side (LHS) variable in the current scope.
     Symbol *LHSOperand = curScope->lookupSymbol(cur->getExpression().at(0).getSpelling());
+
+    // Handle integer type assignments.
     if (LHSOperand->type == SymbolType::INT) {
-        //if the expression is only 3 ints long then (Ex. a 5 =) no math needed
+        // Simple assignment: directly assign the value if the expression has only two tokens (e.g., a = 5).
         if (cur->getExpression().size() == 2) {
             LHSOperand->assign(std::stoi(cur->getExpression().at(1).getSpelling()));
         }
-            //otherwise let's evaluate the expression
+            // Evaluate the right-hand side expression and assign the result.
         else{
             value = math(cur->getExpression(), curScope, isBool);
             if(isBool){
-                ifBool = value;
+                ifBool = value; // Store the boolean result for conditional evaluation.
             }
             else{
-                LHSOperand->assign(value);
+                LHSOperand->assign(value); // Assign the computed value.
             }
         }
     }
+    // Handle boolean type assignments.
     else if(LHSOperand->type == SymbolType::BOOL){
         if (cur->getExpression().size() == 2) {
+            // Assign a boolean literal (true/false).
             if(cur->getExpression().at(1).getSpelling() == "true"){
                 ifBool = true;
                 LHSOperand->assign(true); // temp = true;
@@ -1019,26 +1074,31 @@ int assignment(CodeNode* cur, CodeScope* curScope, bool &isBool){
             }
         }
         else{
+            // Evaluate the right-hand side expression and assign the boolean result.
             value = math(cur->getExpression(), curScope, isBool);
             if(isBool){
                 ifBool = value;
             }
         }
     }
+    // Handle character type or array assignments.
     else{
         if (cur->getExpression().size() == 2 && !LHSOperand->isArray) {
+            // Assign a single character.
             LHSOperand->assign(cur->getExpression().at(1).getSpelling()[0]);
         }
         else if(LHSOperand->isArray){
             if(LHSOperand->value != nullptr){
-                delete[]LHSOperand;
+                delete[]LHSOperand; // Free the previous array memory.
             }
+            // Assign values to an array.
             LHSOperand->value = new int[LHSOperand->arraySize];
             for(int i = 0; i< cur->getExpression().at(1).getSpelling().size(); i++){
                 LHSOperand->value[i] = cur->getExpression().at(1).getSpelling().at(i);
             }
         }
         else{
+            // Evaluate the right-hand side expression and assign the result.
             value = math(cur->getExpression(), curScope, isBool);
             if(isBool){
                 ifBool = value;
@@ -1049,8 +1109,8 @@ int assignment(CodeNode* cur, CodeScope* curScope, bool &isBool){
         }
     }
     if(isBool){
-        return ifBool;
+        return ifBool; // Return the boolean value if the assignment is part of a conditional statement.
     }
 
-    return LHSOperand->value[0];
+    return LHSOperand->value[0]; // Return the final assigned value.
 }
