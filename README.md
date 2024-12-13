@@ -1,9 +1,9 @@
 # CS 460 Group Project
 
-This project is an interpreter for the C programming language, built with C++. 
+This project is an interpreter for a C-like scripting language, built with C++. 
 
 ## Installation
-Not ready for release, development is ongoing.
+Clone the repo, then run `make` inside of the root folder of the repo. 
 
 ## Authors and acknowledgment
 Bo Thompson
