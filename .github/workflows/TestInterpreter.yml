@@ -1,0 +1,19 @@
+name: Test Interpreter
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  TestInterpreter:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: permissions
+      run: chmod +x tests/Interpreter/TestInterpreter.sh
+    - name: execute tests
+      run: sh tests/Interpreter/TestInterpreter.sh
