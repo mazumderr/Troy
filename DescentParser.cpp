@@ -368,6 +368,7 @@ bool DescentParser::parse(const string& fname, SyntaxTree*& root, CodeScope*& ta
         root->descend(n);
         curTable = curTable->getParentScope();
       }break;
+      default: break;
       
     }
   }
