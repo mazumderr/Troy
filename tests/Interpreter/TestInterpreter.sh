@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
-
+pwd
 cd ../../../
+pwd
+ls
 make
 fileout="programming_assignment_6-test_file_"
 mkdir temp/
