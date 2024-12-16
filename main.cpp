@@ -848,6 +848,8 @@ int math(vector<Token> equation, CodeScope* Scope, bool &isBool){
                 equationCopy.insert(equationCopy.begin()+i,toke);
                 break;
 
+            default: break;
+
         }
     }
     //If only one token is left, return its value as the result.
